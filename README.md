@@ -19,3 +19,6 @@ Python Interface for  HTPOW (Cheap Chinese CNC Laser Engravers)
 * Mine came with a bad power supply and EU converter, so I just use a USB power cable and connect it to a 2.4amp power source or powerbank (not very stable, as it seems to go into standby mode with the power bank)
 
 ![Image of Cheap Chinese Laser](https://github.com/AppliedEllipsis/pyLaser/raw/master/laser_cutter.jpg)
+
+**How to Sniff traffic**
+I used a freeware Serial Port Debugger called [SUDT AccessPort](http://www.sudt.com/en/ap/index.html), and would set it to listen to traffic on the com port of the laser, run a task, and save the output.  I would then sanitize the output using some regular expression replaces and look for patterns and trends in the data.
