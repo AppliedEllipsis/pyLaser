@@ -159,7 +159,7 @@ for x in range(0,513):
   set_laser_position(513-x,x)
   time.sleep(0.01)
 time.sleep(2)
-print "bottom right to top left, angle, switcheroo"
+print "bottom left to top left, angle, switcheroo"
 for x in range(0,513):
   if x > 256:
     set_laser_position(513-x,513-x)

@@ -3,6 +3,7 @@
 * Init/Reboot Parsing
  * Figure out Power On Time
  * Figure out other init vars, like where is hardware version and what do the other rows not parsed mean
+* Improve the Chinese Laser Dance
 * RASTER Carving
 ** BW Carving
 ** Greyscale Carving
