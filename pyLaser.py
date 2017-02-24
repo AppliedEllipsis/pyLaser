@@ -22,10 +22,8 @@ ser = serial.Serial(
     timeout = 1
 )
 
-
 def set_laser_speed(speed): # 0-250 
   ser.write( ("17" + format(speed,"02x") + "00000000ff").decode("hex") )
-
 
 def set_laser_position(x,y): # X and Y range: 0-512 
   # note will not always take direct path if large gaps, keep it small if doing vector with laser on
@@ -36,6 +34,30 @@ def set_laser_position(x,y): # X and Y range: 0-512
   # print "(" + str(x) + "," + str(y) + ") " + cmd
   ser.write( cmd.decode("hex") )
 
+
+
+laser_buff_min = 62
+laser_buff_max = 120
+laser_buff = laser_buff_min
+
+def draw_laser_pixel(x,y): # X and Y range: 0-512 
+  global laser_buff, laser_buff_max
+  # print laser_buff
+  laser_buff += 1
+  laser_buff = laser_buff%laser_buff_max
+  if laser_buff == 0:
+    print "Buffer Reset"
+    laser_buff = laser_buff_min
+    get_laser_resp()
+
+  # note will not always take direct path if large gaps, keep it small if doing vector with laser on
+  # time.sleep(0.01) is recommended after for smooth movement
+  pos_x = format(x/100,"02x") + format(x%100,"02x")
+  pos_y = format(y/100,"02x") + format(y%100,"02x")
+  cmd = (format(laser_buff,"02x") + pos_x + pos_y + "00ff")
+  # cmd = ("44" + pos_x + pos_y + "00ff")
+  # print "(" + str(x) + "," + str(y) + ") " + cmd
+  ser.write( cmd.decode("hex") )
 
 def set_laser_move(direction): # Moves laser without x,y towards a direction 1=up, 2=down, 3=left, 4=right
   ser.write( ("19" + format(direction,"02x") + "00000000ff").decode("hex") )
@@ -69,6 +91,14 @@ def set_laser_power(power): # range 0-10
 def set_fan_speed(speed): # range 0-10
   ser.write( ("34" + format(speed,"02x") + "00000000ff").decode("hex") )
 
+
+def set_motor_speed(speed): # range 0-100 recommended 60-75
+  # ser.write( ("150000000000ff").decode("hex") )
+  # set_laser_box(0,0,150,150)
+  # ser.write( ("360000000000ff").decode("hex") )
+  # return get_laser_resp()
+  ser.write( ("37" + format(100-speed,"02x") + "00000000ff").decode("hex") )
+  # set_laser_position(0,0)
 
 def reboot_laser(): # returns same info as init
   ser.write( ("fe0000000000ff").decode("hex") )
@@ -128,9 +158,61 @@ def parse_init_resp(resp):
 parse_init_resp(init_laser())
 time.sleep(0.1)
 
+# set_laser_power(10) # just a visible laser, nothing really will cut
+# raw_input("Press Enter to start the dance...")
+
+print "set_laser_power 10"
+set_laser_power(10) # just a visible laser, nothing really will cut
+time.sleep(0.1)
+print "set_fan_speed 10"
+set_fan_speed(10)
+time.sleep(0.1)
+print("set_motor_speed(65)")
+set_motor_speed(65)
+print "set_laser_speed(105)"
+set_laser_speed(105)
+
+parse_init_resp(reboot_laser())
+time.sleep(2)
+
+# # warning below messes with the motor speed for some reason
+ser.write( ("1B003D001D00FF").decode("hex") )
+ser.write( ("1B013D005C01FF").decode("hex") )
+ser.write( ("1C00000000FF").decode("hex") )
+ser.write( ("18003D001DFF").decode("hex") )
+ser.write( ("150101000000FF").decode("hex") )
+# print get_laser_resp()
+
+for x in range(0,500):
+  if x > 120 and x<160:
+    ''
+    # draw_laser_pixel(513-x,513-x)
+  else:
+    draw_laser_pixel(x,10)
+  time.sleep(0.01)
+print get_laser_resp()
+# # warning end
+
+# print get_laser_resp()
+# 44 01 07 00 1D 00 FF
+# 45 01 08 00 1D 00 FF
+# 46 01 09 00 1D 00 FF
+# 47 01 0A 00 1D 00 FF
+
+# ser.write( ("44 01 d3 01 3D 00 FF").replace(' ','').decode("hex") )
+# ser.write( ("45 01 05 00 1D 00 FF").replace(' ','').decode("hex") )
+# ser.write( ("46 01 04 00 1D 00 FF").replace(' ','').decode("hex") )
+# ser.write( ("47 01 03 00 1D 00 FF").replace(' ','').decode("hex") )
+print "set_laser_position(0,0)"
+set_laser_position(0,0)
+time.sleep(5)
+
 print "\nAre you ready for the Chinese Laser Dance?"
 raw_input("Press Enter to start the dance...")
-
+print("set_motor_speed(65)")
+set_motor_speed(65)
+print "set_laser_speed(15)"
+set_laser_speed(15)
 print "set_laser_power 1"
 set_laser_power(1) # just a visible laser, nothing really will cut
 time.sleep(0.1)
