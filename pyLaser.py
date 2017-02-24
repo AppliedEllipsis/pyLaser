@@ -36,8 +36,8 @@ def set_laser_position(x,y): # X and Y range: 0-512
 
 
 
-laser_buff_min = 62
-laser_buff_max = 120
+laser_buff_min = 61
+laser_buff_max = 121
 laser_buff = laser_buff_min
 
 def draw_laser_pixel(x,y): # X and Y range: 0-512 
@@ -161,6 +161,8 @@ time.sleep(0.1)
 # set_laser_power(10) # just a visible laser, nothing really will cut
 # raw_input("Press Enter to start the dance...")
 
+
+# # warning below messes with the motor speed for some reason
 print "set_laser_power 10"
 set_laser_power(10) # just a visible laser, nothing really will cut
 time.sleep(0.1)
@@ -172,25 +174,34 @@ set_motor_speed(65)
 print "set_laser_speed(105)"
 set_laser_speed(105)
 
-parse_init_resp(reboot_laser())
+# parse_init_resp(reboot_laser())
+# time.sleep(2)
+
+# 1B 00 05 00 20 00 FF # Box Sequence
+# 1B 03 63 00 21 01 FF #
+# 1C 00 00 00 00 00 FF #
+# 18 00 05 00 20 00 FF # Move to position
+# 15 01 01 00 00 00 FF # ? start draw mode
+
+print "set_laser_box(0,10,500,10)"
+set_laser_box(0,10,500,10)
+time.sleep(2)
+print "set_laser_position(0,10)"
+set_laser_position(0,10)
 time.sleep(2)
 
-# # warning below messes with the motor speed for some reason
-ser.write( ("1B003D001D00FF").decode("hex") )
-ser.write( ("1B013D005C01FF").decode("hex") )
-ser.write( ("1C00000000FF").decode("hex") )
-ser.write( ("18003D001DFF").decode("hex") )
-ser.write( ("150101000000FF").decode("hex") )
-# print get_laser_resp()
+ser.write( ("150101000000FF").decode("hex") ) # start draw mode
+print get_laser_resp()
 
 for x in range(0,500):
-  if x > 120 and x<160:
-    ''
-    # draw_laser_pixel(513-x,513-x)
-  else:
+  if not x > 120 and x<160:
     draw_laser_pixel(x,10)
-  time.sleep(0.01)
-print get_laser_resp()
+    time.sleep(0.1)
+
+
+ser.write(( (format(laser_buff,"02x") + " 09 09 09 09 09 FF").replace(' ','').decode("hex") )) # ending transmission of data
+
+# print get_laser_resp()
 # # warning end
 
 # print get_laser_resp()
@@ -203,116 +214,117 @@ print get_laser_resp()
 # ser.write( ("45 01 05 00 1D 00 FF").replace(' ','').decode("hex") )
 # ser.write( ("46 01 04 00 1D 00 FF").replace(' ','').decode("hex") )
 # ser.write( ("47 01 03 00 1D 00 FF").replace(' ','').decode("hex") )
-print "set_laser_position(0,0)"
-set_laser_position(0,0)
-time.sleep(5)
 
-print "\nAre you ready for the Chinese Laser Dance?"
-raw_input("Press Enter to start the dance...")
-print("set_motor_speed(65)")
-set_motor_speed(65)
-print "set_laser_speed(15)"
-set_laser_speed(15)
-print "set_laser_power 1"
-set_laser_power(1) # just a visible laser, nothing really will cut
-time.sleep(0.1)
-print "set_fan_speed 10"
-set_fan_speed(10)
-time.sleep(0.1)
-print "set_laser_position(0,0)"
-set_laser_position(0,0)
-time.sleep(5)
-print "set_laser_position(512,512)"
-set_laser_position(512,512)
-time.sleep(5)
-print "set_laser_position(0,0)"
-set_laser_position(0,0)
-time.sleep(5)
-print "Top left to bottom right, angle"
-for x in range(0,513):
-  set_laser_position(x,x)
-  time.sleep(0.01)
-time.sleep(2)
-print "set_fan_speed 1"
-set_fan_speed(1)
-time.sleep(0.1)
-print "bottom left to top right, angle"
-for x in range(0,513):
-  set_laser_position(513-x,x)
-  time.sleep(0.01)
-time.sleep(2)
-print "bottom left to top left, angle, switcheroo"
-for x in range(0,513):
-  if x > 256:
-    set_laser_position(513-x,513-x)
-  else:
-    set_laser_position(x,513-x)
-  time.sleep(0.01)
-time.sleep(2)
-print "set_laser_position(30,20)"
-set_laser_position(30,20)
-time.sleep(5)
-print "Rebooting laser"
-parse_init_resp(reboot_laser())
-time.sleep(5)
-print "set_fan_speed 5"
-set_fan_speed(5)
-time.sleep(0.1)
-print "set_laser_box(100,100,150,150)"
-set_laser_box(100,100,150,150)
-time.sleep(2)
-print "set_laser_box(0,0,150,150)"
-set_laser_box(0,0,150,150)
-time.sleep(2)
-print "set_laser_box(10,100,50,50)"
-set_laser_box(10,100,50,50)
-time.sleep(2)
-print "set_laser_box(10,10,20,20)... Machine Gun #1"
-set_laser_box(10,10,20,20)
-time.sleep(2)
-print "set_laser_box(100,50,105,55)... Machine Gun #2"
-set_laser_box(100,50,105,55)
-time.sleep(2)
-print "set_laser_box(0,0,512,0)... Fax Machine"
-set_laser_box(0,0,512,0)
-time.sleep(4)
-print "set_laser_box(0,0,0,512)... Flatbed Scanner"
-set_laser_box(0,0,0,512)
-time.sleep(2)
-print "set_laser_box(25,10,150,50)"
-set_laser_box(25,10,150,50)
-time.sleep(2)
-print "set_fan_speed 10"
-set_fan_speed(10)
-time.sleep(0.1)
-print "set_laser_position(200,403)"
-set_laser_position(200,403)
-time.sleep(2)
-print "Rebooting laser, because why not"
-parse_init_resp(reboot_laser())
-time.sleep(2)
-print "set_laser_position(512,220)"
-print "set_laser_power 10... pew"
-set_laser_power(10)
-time.sleep(1)
-print "set_laser_power 0"
-set_laser_power(0)
-time.sleep(1)
-print "set_laser_power 10... {pew} pew"
-set_laser_power(10)
-time.sleep(1)
-print "set_laser_power 0"
-set_laser_power(0)
-time.sleep(1)
-print "set_laser_power 10... {pew pew} pew"
-set_laser_power(10)
-time.sleep(1)
-print "set_laser_power 0"
-set_laser_power(0)
-time.sleep(1)
-set_laser_position(512,220)
-print "set_fan_speed 0"
-set_fan_speed(0)
-time.sleep(0.1)
+# print "set_laser_position(0,0)"
+# set_laser_position(0,0)
+# time.sleep(5)
+
+# print "\nAre you ready for the Chinese Laser Dance?"
+# raw_input("Press Enter to start the dance...")
+# print("set_motor_speed(65)")
+# set_motor_speed(65)
+# print "set_laser_speed(15)"
+# set_laser_speed(15)
+# print "set_laser_power 1"
+# set_laser_power(1) # just a visible laser, nothing really will cut
+# time.sleep(0.1)
+# print "set_fan_speed 10"
+# set_fan_speed(10)
+# time.sleep(0.1)
+# print "set_laser_position(0,0)"
+# set_laser_position(0,0)
+# time.sleep(5)
+# print "set_laser_position(512,512)"
+# set_laser_position(512,512)
+# time.sleep(5)
+# print "set_laser_position(0,0)"
+# set_laser_position(0,0)
+# time.sleep(5)
+# print "Top left to bottom right, angle"
+# for x in range(0,513):
+#   set_laser_position(x,x)
+#   time.sleep(0.01)
+# time.sleep(2)
+# print "set_fan_speed 1"
+# set_fan_speed(1)
+# time.sleep(0.1)
+# print "bottom left to top right, angle"
+# for x in range(0,513):
+#   set_laser_position(513-x,x)
+#   time.sleep(0.01)
+# time.sleep(2)
+# print "bottom left to top left, angle, switcheroo"
+# for x in range(0,513):
+#   if x > 256:
+#     set_laser_position(513-x,513-x)
+#   else:
+#     set_laser_position(x,513-x)
+#   time.sleep(0.01)
+# time.sleep(2)
+# print "set_laser_position(30,20)"
+# set_laser_position(30,20)
+# time.sleep(5)
+# print "Rebooting laser"
+# parse_init_resp(reboot_laser())
+# time.sleep(5)
+# print "set_fan_speed 5"
+# set_fan_speed(5)
+# time.sleep(0.1)
+# print "set_laser_box(100,100,150,150)"
+# set_laser_box(100,100,150,150)
+# time.sleep(2)
+# print "set_laser_box(0,0,150,150)"
+# set_laser_box(0,0,150,150)
+# time.sleep(2)
+# print "set_laser_box(10,100,50,50)"
+# set_laser_box(10,100,50,50)
+# time.sleep(2)
+# print "set_laser_box(10,10,20,20)... Machine Gun #1"
+# set_laser_box(10,10,20,20)
+# time.sleep(2)
+# print "set_laser_box(100,50,105,55)... Machine Gun #2"
+# set_laser_box(100,50,105,55)
+# time.sleep(2)
+# print "set_laser_box(0,0,512,0)... Fax Machine"
+# set_laser_box(0,0,512,0)
+# time.sleep(4)
+# print "set_laser_box(0,0,0,512)... Flatbed Scanner"
+# set_laser_box(0,0,0,512)
+# time.sleep(2)
+# print "set_laser_box(25,10,150,50)"
+# set_laser_box(25,10,150,50)
+# time.sleep(2)
+# print "set_fan_speed 10"
+# set_fan_speed(10)
+# time.sleep(0.1)
+# print "set_laser_position(200,403)"
+# set_laser_position(200,403)
+# time.sleep(2)
+# print "Rebooting laser, because why not"
+# parse_init_resp(reboot_laser())
+# time.sleep(2)
+# print "set_laser_position(512,220)"
+# print "set_laser_power 10... pew"
+# set_laser_power(10)
+# time.sleep(1)
+# print "set_laser_power 0"
+# set_laser_power(0)
+# time.sleep(1)
+# print "set_laser_power 10... {pew} pew"
+# set_laser_power(10)
+# time.sleep(1)
+# print "set_laser_power 0"
+# set_laser_power(0)
+# time.sleep(1)
+# print "set_laser_power 10... {pew pew} pew"
+# set_laser_power(10)
+# time.sleep(1)
+# print "set_laser_power 0"
+# set_laser_power(0)
+# time.sleep(1)
+# set_laser_position(512,220)
+# print "set_fan_speed 0"
+# set_fan_speed(0)
+# time.sleep(0.1)
 
 print '\nDone, now wasn\'t that dance fun?'
