@@ -21,3 +21,5 @@
 * Autonomous mode
 * Speed Control from config, gap speed, etc
 * Cross platform options, should be easy since in python
+* Sample Data
+* Image manipulation
