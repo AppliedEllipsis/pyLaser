@@ -9,3 +9,5 @@ Python Interface for  HTPOW (Cheap Chinese CNC Laser Engravers)
  * It also goes by the name of SuperCarver
  * It looks identical to some cheap chinese NEJE Lasers, but the protocol seems to be different
  * Mine came with a bad power supply and EU converter, so I just use a USB power cable and connect it to a 2.4amp power source or powerbank (not very stable, as it seems to go into standby mode with the power bank)
+
+![Image of Cheap Chinese Laser](https://github.com/AppliedEllipsis/pyLaser/raw/master/laser_cutter.jpg)
