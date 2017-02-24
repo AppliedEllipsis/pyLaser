@@ -1,4 +1,5 @@
 # Todo
+* Add Readme/HowTo
 * Init/Reboot Parsing
  * Figure out Power On Time
  * Figure out other init vars, like where is hardware version and what do the other rows not parsed mean
