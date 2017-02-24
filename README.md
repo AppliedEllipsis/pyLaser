@@ -1,5 +1,5 @@
 # pyLaser
-## By AppliedEllipsis
+###### By AppliedEllipsis
 Python Interface for  HTPOW (Cheap Chinese CNC Laser Engravers)
 
 **[Todo](https://github.com/AppliedEllipsis/pyLaser/blob/master/Todo.md)**
