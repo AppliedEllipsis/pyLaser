@@ -6,6 +6,9 @@ import serial #pyserial
 # from PIL import ImageFilter
 import time
 
+_ORIGINAL_ARTHOR_ = "AppliedEllippsis"
+_VERSION_ = "0.1a"
+_LICENSE_ = "See License.txt, but GPLv3 for the lazy"
 
 usb_port = "com11"
 baund_rate = 115200
