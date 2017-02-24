@@ -9,7 +9,7 @@ Python Interface for  HTPOW (Cheap Chinese CNC Laser Engravers)
 **[Source](https://github.com/AppliedEllipsis/pyLaser/blob/master/pyLaser.py)**
 
 **Hardware**
-* The laser this is developed against is a cheap sub-100 cnc 1000mw laser from China.
+* The laser this is developed against is a cheap sub-$100 cnc 1000mw laser from China.
  * The laser enclosure is unbranded
  * It is listed as HW V2, Firmware V2.4
  * The software it uses is HTOPW.
