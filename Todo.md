@@ -10,6 +10,7 @@
 * Vector/G-Code Pathing
  * Optimized Pathing
 * Input sanatization
+* Add power off function
 * Boxing of input data
 * Top Left, Bottom Right, Center Positining
 * GUI, probably web front-end
