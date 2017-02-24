@@ -23,22 +23,6 @@ ser = serial.Serial(
 )
 
 
-def set_laser_box(x1, y1, x2, y2): # X and Y range: 0-512 
-  pos_x1 = format(x1/100,"02x") + format(x1%100,"02x")
-  pos_y1 = format(y1/100,"02x") + format(y1%100,"02x")
-  pos_x2 = format(x2/100,"02x") + format(x2%100,"02x")
-  pos_y2 = format(y2/100,"02x") + format(y2%100,"02x")
-  # ser.write("ffffffff")
-  ser.write(("1B" + pos_x1 + pos_y1 + "00FF").decode("hex"))
-  ser.write(("1B" + pos_x2 + pos_y2 + "01FF").decode("hex"))
-  ser.write(("1C0000000000FF").decode("hex"))
-
-
-def stop_laser_job_center(): # take box and find center, don't do write in function 41,84 
-  set_laser_position(0,0) # change to center of x,y later
-  # ser.write("180128005400FF".decode("hex")) # original data from sample
-
-
 def set_laser_speed(speed): # 0-250 
   ser.write( ("17" + format(speed,"02x") + "00000000ff").decode("hex") )
 
@@ -60,6 +44,22 @@ def set_laser_move(direction): # Moves laser without x,y towards a direction 1=u
 def init_laser(): # seems optional but returns some nice to have info
   ser.write( ("1a0000000000ff").decode("hex") )
   return get_laser_resp()
+
+
+def set_laser_box(x1, y1, x2, y2): # X and Y range: 0-512 
+  pos_x1 = format(x1/100,"02x") + format(x1%100,"02x")
+  pos_y1 = format(y1/100,"02x") + format(y1%100,"02x")
+  pos_x2 = format(x2/100,"02x") + format(x2%100,"02x")
+  pos_y2 = format(y2/100,"02x") + format(y2%100,"02x")
+  # ser.write("ffffffff")
+  ser.write(("1B" + pos_x1 + pos_y1 + "00FF").decode("hex"))
+  ser.write(("1B" + pos_x2 + pos_y2 + "01FF").decode("hex"))
+  ser.write(("1C0000000000FF").decode("hex"))
+
+
+def stop_laser_job_center(): # take box and find center, don't do write in function 41,84 
+  set_laser_position(0,0) # change to center of x,y later
+  # ser.write("180128005400FF".decode("hex")) # original data from sample
 
 
 def set_laser_power(power): # range 0-10
