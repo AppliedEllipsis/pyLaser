@@ -1,18 +1,18 @@
 # Todo
 * Init/Reboot Parsing
-** Figure out Power On Time
-** Figure out other init vars, like where is hardware version and what do the other rows not parsed mean
+ * Figure out Power On Time
+ * Figure out other init vars, like where is hardware version and what do the other rows not parsed mean
 * RASTER Carving
 ** BW Carving
 ** Greyscale Carving
 ** Offline Carving
 * Vector/G-Code Pathing
-** Optimized Pathing
+ * Optimized Pathing
 * Input sanatization
 * Boxing of input data
 * Top Left, Bottom Right, Center Positining
 * GUI, probably web front-end
-** Mobile Support
+ * Mobile Support
 * Duplicate Protocol on ESP8266 to make it Wifi
 * Dether Patterns
 * Optimal default settings for different materials
