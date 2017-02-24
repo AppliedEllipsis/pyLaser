@@ -5,6 +5,8 @@ import serial #pyserial
 # from PIL import ImageTk
 # from PIL import ImageFilter
 import time
+from math import sqrt
+from math import ceil
 
 _ORIGINAL_ARTHOR_ = "AppliedEllippsis"
 _VERSION_ = "0.1a"
@@ -217,16 +219,20 @@ time.sleep(0.1)
 
 
 # using raster drawing functions, draw //////     /////// type of shape
-ser.write( ("15 01 01 00 00 00 FF").replace(' ','').decode("hex") ) # start draw mode
-print get_laser_resp()
+# ser.write( ("15 01 01 00 00 00 FF").replace(' ','').decode("hex") ) # start draw mode
+# print get_laser_resp()
 
-for y in range(10,25):
-  for x in range(0,512):
-    if not (x > 220+y and x<380+y):
-      draw_laser_pixel(x,y)  # go line by line, it does not like angles with this mode
-      time.sleep(0.105) # set to the same as the laser speed
+# for y in range(10,25):
+#   for x in range(0,512):
+#     if not (x > 220+y and x<380+y):
+#       draw_laser_pixel(x,y)  # go line by line, it does not like angles with this mode
+#       time.sleep(0.105) # set to the same as the laser speed
 
-ser.write(( (format(laser_buff,"02x") + " 09 09 09 09 09 FF").replace(' ','').decode("hex") )) # ending transmission of data
+# ser.write(( (format(laser_buff,"02x") + " 09 09 09 09 09 FF").replace(' ','').decode("hex") )) # ending transmission of data
+
+
+
+
 
 # print "set_laser_position(0,0)"
 # set_laser_position(0,0)
@@ -238,17 +244,17 @@ ser.write(( (format(laser_buff,"02x") + " 09 09 09 09 09 FF").replace(' ','').de
 # print "set_laser_box(0,10,700,10)"
 # set_laser_box(0,0,200,212)
 # time.sleep(2)
-set_laser_position(0,0)
-time.sleep(2)
+# set_laser_position(0,0)
+# time.sleep(2)
 # time.sleep(4) # set to the same as the laser speed
 # print "set_fan_speed 10"
 # set_fan_speed(10)
-print "set_laser_power 9"
-set_laser_power(9) # just a visible laser, nothing really will cut
+# print "set_laser_power 9"
+# set_laser_power(9) # just a visible laser, nothing really will cut
 
-for x in range(0,513, 4):
-  set_laser_position(x,x)
-  time.sleep(0.2) # set to the same as the laser speed
+# for x in range(0,513, 4):
+#   set_laser_position(x,x)
+#   time.sleep(0.2) # set to the same as the laser speed
 
 # print "set_laser_power 0"
 # set_laser_power(0) # just a visible laser, nothing really will cut
@@ -256,6 +262,101 @@ for x in range(0,513, 4):
 # set_fan_speed(0)
 print "set_laser_power 1"
 set_laser_power(1) # just a visible laser, nothing really will cut
+
+
+# Draw HI
+# H
+# off
+# goto 64,223
+# 64,223 to 84,126 on
+# off
+# goto  73,170
+# 73,170 to 113,176
+# goto 125,132
+# 125,132 to 100,230
+# goto 129,235
+# 129,235 to 144,182
+# goto 148, 165
+# 148,165 to 150, 158
+
+def draw_line(x1,y1,x2,y2,skip):
+  line_points = get_line((x1,y1), (x2,y2))
+  set_laser_power(9)
+  time.sleep(0.1)
+  for xy in line_points:
+    print str(xy[0]) + ', ' + str(xy[1])
+    set_laser_position(xy[0],xy[1])
+    time.sleep(0.05)
+  set_laser_power(1)
+  time.sleep(.2)
+
+def get_line(start, end):
+    """Bresenham's Line Algorithm
+    Produces a list of tuples from start and end
+ 
+    >>> points1 = get_line((0, 0), (3, 4))
+    >>> points2 = get_line((3, 4), (0, 0))
+    >>> assert(set(points1) == set(points2))
+    >>> print points1
+    [(0, 0), (1, 1), (1, 2), (2, 3), (3, 4)]
+    >>> print points2
+    [(3, 4), (2, 3), (1, 2), (1, 1), (0, 0)]
+    """
+    # Setup initial conditions
+    x1, y1 = start
+    x2, y2 = end
+    dx = x2 - x1
+    dy = y2 - y1
+ 
+    # Determine how steep the line is
+    is_steep = abs(dy) > abs(dx)
+ 
+    # Rotate line
+    if is_steep:
+        x1, y1 = y1, x1
+        x2, y2 = y2, x2
+ 
+    # Swap start and end points if necessary and store swap state
+    swapped = False
+    if x1 > x2:
+        x1, x2 = x2, x1
+        y1, y2 = y2, y1
+        swapped = True
+ 
+    # Recalculate differentials
+    dx = x2 - x1
+    dy = y2 - y1
+ 
+    # Calculate error
+    error = int(dx / 2.0)
+    ystep = 1 if y1 < y2 else -1
+ 
+    # Iterate over bounding box generating points between start and end
+    y = y1
+    points = []
+    for x in range(x1, x2 + 1):
+        coord = (y, x) if is_steep else (x, y)
+        points.append(coord)
+        error -= abs(dy)
+        if error < 0:
+            y += ystep
+            error += dx
+ 
+    # Reverse the list if the coordinates were swapped
+    if swapped:
+        points.reverse()
+    return points
+
+set_laser_position(64,223)
+draw_line(64,223,84,126,1)
+set_laser_position(73,170)
+draw_line(73,170,113,176,1)
+set_laser_position(125,132)
+draw_line(125,132,100,230,1)
+set_laser_position(129,235)
+draw_line(129,235,144,182,1)
+set_laser_position(148, 165)
+draw_line(148,165, 150, 158,1)
 
 
 
