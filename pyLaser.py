@@ -210,9 +210,24 @@ print "Rebooting laser, because why not"
 parse_init_resp(reboot_laser())
 time.sleep(2)
 print "set_laser_position(512,220)"
+print "set_laser_power 10... pew"
+set_laser_power(10)
+time.sleep(1)
 print "set_laser_power 0"
 set_laser_power(0)
-time.sleep(0.1)
+time.sleep(1)
+print "set_laser_power 10... {pew} pew"
+set_laser_power(10)
+time.sleep(1)
+print "set_laser_power 0"
+set_laser_power(0)
+time.sleep(1)
+print "set_laser_power 10... {pew pew} pew"
+set_laser_power(10)
+time.sleep(1)
+print "set_laser_power 0"
+set_laser_power(0)
+time.sleep(1)
 set_laser_position(512,220)
 print "set_fan_speed 0"
 set_fan_speed(0)
