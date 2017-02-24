@@ -34,7 +34,7 @@ def set_laser_power(power): # range 0-10
 def set_fan_speed(speed): # range 0-10
   ser.write( ("34" + format(speed,"02x") + "00000000ff").decode("hex") )
 
-def set_laser_box(x1, y1, x2, y2):
+def set_laser_box(x1, y1, x2, y2): # X and Y range: 0-512 
   pos_x1 = format(x1/100,"02x") + format(x1%100,"02x")
   pos_y1 = format(y1/100,"02x") + format(y1%100,"02x")
   pos_x2 = format(x2/100,"02x") + format(x2%100,"02x")
