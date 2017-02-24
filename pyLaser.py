@@ -22,9 +22,6 @@ ser = serial.Serial(
     timeout = 1
 )
 
-def debug_send(cmd):
-  print cmd
-  ser.write(cmd.decode("hex"))
 
 def set_laser_box(x1, y1, x2, y2): # X and Y range: 0-512 
   pos_x1 = format(x1/100,"02x") + format(x1%100,"02x")
@@ -35,6 +32,7 @@ def set_laser_box(x1, y1, x2, y2): # X and Y range: 0-512
   ser.write(("1B" + pos_x1 + pos_y1 + "00FF").decode("hex"))
   ser.write(("1B" + pos_x2 + pos_y2 + "01FF").decode("hex"))
   ser.write(("1C0000000000FF").decode("hex"))
+
 
 def stop_laser_job_center(): # take box and find center, don't do write in function 41,84 
   set_laser_position(0,0) # change to center of x,y later
