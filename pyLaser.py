@@ -57,7 +57,7 @@ def stop_laser_raster_mode():
   global laser_buff
   ser.write(( (format(laser_buff,"02x") + "0909090909FF").decode("hex") ))
 
-def raster_draw_pixel(x,y,grey=0): # X and Y range: 0-512, grey range 0-254
+def raster_draw_pixel(x,y,grey=0): # X and Y range: 0-512, grey range 0-254 * I don't really notice grey values with this.
   if debug: print "raster_draw_pixel: " + str(x) + "," + str(y) + " / " + str(grey) 
   global laser_buff, laser_buff_max, laser_buff_min
   laser_buff += 1
@@ -262,9 +262,8 @@ def get_line(start, end):
 
 
 
-# below is a sample dance of the laser to show how to use some things
-parse_init_resp(init_laser())
-time.sleep(0.1)
+# parse_init_resp(init_laser())
+# time.sleep(0.1)
 # wait_on_ready_status()
 # set_laser_power(1) # just a visible laser, nothing really will cut
 # raw_input("Press Enter to start the dance...")
@@ -392,7 +391,7 @@ time.sleep(0.1)
 
 
 
-
+# below is a sample dance of the laser to show how to use some things
 # print "\nAre you ready for the Chinese Laser Dance?"
 # raw_input("Press Enter to start the dance...")
 # set_motor_speed(65)
@@ -495,4 +494,4 @@ time.sleep(0.1)
 # set_fan_speed(0)
 # time.sleep(0.1)
 
-print '\nDone, now wasn\'t that dance fun?'
+# print '\nDone, now wasn\'t that dance fun?'
