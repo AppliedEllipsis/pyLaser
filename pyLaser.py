@@ -132,7 +132,7 @@ def get_laser_resp(): # 140 or timeout defined in serial connection
   if debug: print "get_laser_resp"
   return ser.read(140).encode("hex") 
 
-def wait_on_ready_status():
+def wait_on_ready_status(): # not sure this really is ready, it seems to throw a 01 or 02 occationally while doing some actions
   if debug: print "wait_on_ready_status"
   while 1:
     print 'getting resp...'
