@@ -5,9 +5,9 @@
  * Figure out other init vars, like where is hardware version and what do the other rows not parsed mean
 * Improve the Chinese Laser Dance
 * RASTER Carving
-** BW Carving - Added
-** Greyscale Carving - Added
-** Offline Carving
+ * BW Carving - Added
+ * Greyscale Carving - Added
+ * Offline Carving
 * Vector/G-Code Pathing - Basic Vector Hi test added
  * Optimized Pathing
 * Input sanatization
