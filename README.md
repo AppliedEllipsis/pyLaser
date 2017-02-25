@@ -25,5 +25,5 @@ Right now, I'm still prototyping and writing this, the code will be cleaner in t
 **How to Sniff traffic**
 I used a freeware Serial Port Debugger called [SUDT AccessPort](http://www.sudt.com/en/ap/index.html), and would set it to listen to traffic on the com port of the laser, run a task, and save the output.  I would then sanitize the output using some regular expression replaces and look for patterns and trends in the data.
 
-#WARNING
+#####WARNING
 * I thought I screwed up my device when playing with the raster images, it was just I sent some cmds that changed speed to 0 and white speed to 99+

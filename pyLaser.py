@@ -360,31 +360,31 @@ time.sleep(0.1)
 
 
 # Draw Hi, vector style
-parse_init_resp(reboot_laser()) # sometimes things glitch and you have to reboot it, other times you have to unplug everything and it just works
-set_laser_position(0,0)
-time.sleep(3)
-set_laser_position(512,512)
-time.sleep(3)
-set_fan_speed(10)
-set_laser_power(1) # just a visible laser, nothing really will cut
-set_laser_position(64,223)
-time.sleep(1)
-hi_speed = 0.06
-draw_line(64,223,84,126,hi_speed)
-set_laser_position(73,170)
-time.sleep(hi_speed)
-draw_line(73,170,113,176,hi_speed)
-set_laser_position(125,132)
-time.sleep(hi_speed)
-draw_line(125,132,100,230,hi_speed)
-set_laser_position(129,235)
-time.sleep(hi_speed)
-draw_line(129,235,144,182,hi_speed)
-set_laser_position(148, 165)
-time.sleep(hi_speed)
-draw_line(148,165, 150, 158,hi_speed)
-set_laser_power(0)
-set_fan_speed(0)
+# parse_init_resp(reboot_laser()) # sometimes things glitch and you have to reboot it, other times you have to unplug everything and it just works
+# set_laser_position(0,0)
+# time.sleep(3)
+# set_laser_position(512,512)
+# time.sleep(3)
+# set_fan_speed(10)
+# set_laser_power(1) # just a visible laser, nothing really will cut
+# set_laser_position(64,223)
+# time.sleep(1)
+# hi_speed = 0.06
+# draw_line(64,223,84,126,hi_speed)
+# set_laser_position(73,170)
+# time.sleep(hi_speed)
+# draw_line(73,170,113,176,hi_speed)
+# set_laser_position(125,132)
+# time.sleep(hi_speed)
+# draw_line(125,132,100,230,hi_speed)
+# set_laser_position(129,235)
+# time.sleep(hi_speed)
+# draw_line(129,235,144,182,hi_speed)
+# set_laser_position(148, 165)
+# time.sleep(hi_speed)
+# draw_line(148,165, 150, 158,hi_speed)
+# set_laser_power(0)
+# set_fan_speed(0)
 
 
 
