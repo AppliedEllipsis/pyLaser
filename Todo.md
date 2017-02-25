@@ -5,10 +5,10 @@
  * Figure out other init vars, like where is hardware version and what do the other rows not parsed mean
 * Improve the Chinese Laser Dance
 * RASTER Carving
-** BW Carving
-** Greyscale Carving
+** BW Carving - Added
+** Greyscale Carving - Added
 ** Offline Carving
-* Vector/G-Code Pathing
+* Vector/G-Code Pathing - Basic Vector Hi test added
  * Optimized Pathing
 * Input sanatization
 * Add power off function
@@ -21,7 +21,7 @@
 * Optimal default settings for different materials
 * Smart Fan Control
 * Autonomous mode
-* Speed Control from config, gap speed, etc
+* Speed Control from config, gap speed, etc - some are added
 * Cross platform options, should be easy since in python
 * Sample Data
 * Image manipulation
