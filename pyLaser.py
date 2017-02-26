@@ -245,7 +245,9 @@ def check_for_heartbeat(ser): # not sure this really is ready, it seems to throw
     if "ffff" in resp:
       resp = resp.split("ffff")
       print resp[-2]
-      if resp[-2] == '3e02':
+      if resp[-2] == '3e01':
+        break
+      elif resp[-2] == '3e02':
         break
       else:
         print 'waiting 1...'
