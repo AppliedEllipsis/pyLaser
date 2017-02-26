@@ -549,11 +549,11 @@ def example_raster_draw_shades(ser, skip=1):
   set_laser_power(ser, 1) # just a visible laser, nothing really will cut
   set_fan_speed(ser, 10)
   set_motor_speed(ser, 65)
-  set_laser_speed(ser, 170)
-  set_laser_box(ser, 0, 0, 512, 512)  # quick calibration
-  time.sleep(3)
-  set_laser_box(ser, 0, 10, 350, 30) # outline the area we are going to draw
-  time.sleep(3)
+  set_laser_speed(ser, 50)
+  # set_laser_box(ser, 0, 0, 512, 512)  # quick calibration
+  # time.sleep(3)
+  # set_laser_box(ser, 0, 10, 350, 30) # outline the area we are going to draw
+  # time.sleep(3)
   # lets draw the box
   # set_laser_power(ser, 8)
   # set_laser_box(ser, 0, 10, 350, 30) # outline the area we are going to draw
@@ -562,26 +562,26 @@ def example_raster_draw_shades(ser, skip=1):
   set_laser_position(ser, 10,0)
   time.sleep(2)
   start_laser_raster_mode(ser)
-  for y in range(10, 30, 5):
+  for y in range(10, 30, 8):
     for x in range(0,350, skip):
       grey = 10
-      # if x > 25: grey = 50
-      # if x > 50: grey = 100
-      # if x > 75: grey = 150
-      # if x > 100: grey = 200
-      # if x > 125: grey = 250
-      # if x > 150: grey = 200
-      # if x > 160: grey = 250
-      # if x > 165: grey = 254
-      # if x > 175: grey = 250
-      # if x > 195: grey = 150
-      # if x > 200: grey = 100
-      # if x > 250: grey = 50
-      # if x > 300: grey = 0
+      if x > 25: grey = 50
+      if x > 50: grey = 100
+      if x > 75: grey = 150
+      if x > 100: grey = 200
+      if x > 125: grey = 250
+      if x > 150: grey = 200
+      if x > 160: grey = 250
+      if x > 165: grey = 254
+      if x > 175: grey = 250
+      if x > 195: grey = 150
+      if x > 200: grey = 100
+      if x > 250: grey = 50
+      if x > 300: grey = 0
 
-      if x > 100: grey = 250
-      if x > 200: grey = 10
-      raster_draw_grey_pixel(ser, x, y, grey, 0.170)
+      # if x > 100: grey = 250
+      # if x > 200: grey = 10
+      raster_draw_grey_pixel(ser, x, y, grey, 0.050)
         # maybe I should have it draw backwards alternating lines to save a trip back
   stop_laser_raster_mode(ser)
   set_laser_power(ser,1)
@@ -1059,7 +1059,7 @@ Expected Syntax:
       elif user_input=='7':
         example_raster_draw_line_break(ser)
       elif user_input=='8':
-        example_raster_draw_shades(ser, 3)
+        example_raster_draw_shades(ser, 1)
       elif user_input=='9':
         example_raster_draw_angle(ser, 2)
       elif user_input=='9A':
