@@ -74,6 +74,10 @@ laser_buff_min = 60
 laser_buff_max = 121
 laser_buff = laser_buff_min
 
+laser_grey_buff_min = 60
+laser_grey_buff_max = 121
+laser_grey_buff = laser_grey_buff_min
+# grey may be 0x79 (121) - 0xb4 (180)
 
 
 
@@ -112,9 +116,45 @@ def start_laser_raster_mode(ser):
 
 def stop_laser_raster_mode(ser):
   if debug: print "\tDBG: stop_laser_raster_mode"
-  global laser_buff
-  serial_send(ser, ( (format(laser_buff,"02x") + "09 09 09 09 09 FF")))
+  global laser_grey_buff
+  serial_send(ser, ( (format(laser_grey_buff,"02x") + "09 09 09 09 09 FF")))
   time.sleep(.2)
+
+def start_laser_raster_grey_mode(ser):
+  if debug: print "\tDBG: start_laser_raster_mode"
+  global laser_grey_buff, laser_grey_buff_max, laser_grey_buff_min
+  laser_grey_buff = laser_buff_min +1
+  serial_send(ser, ("15 01 01 00 00 00 FF"))
+  # 15 00 00 00 00 00 FF # pause
+  time.sleep(.2)
+
+def stop_laser_raster_grey_mode(ser):
+  if debug: print "\tDBG: stop_laser_raster_mode"
+  global laser_grey_buff
+  serial_send(ser, ( (format(laser_grey_buff,"02x") + "09 00 00 00 00 FF")))
+  serial_send(ser, "15 00 00 00 00 00 FF")
+  time.sleep(.2)
+
+def raster_draw_grey_pixel(ser,x,y,grey=0,delay=0.2): # X and Y range: 0-512, grey range 0-254 [0=darkest, 254=lightest besides not firing.] 
+  # I find if using grey values, to skip 2 pixels horizontal or it won't show up
+  # Actually, I don't think grey works on this machine, even using stock software, sample images are not grey when done in grey mode
+  if debug: print "\tDBG: raster_draw_pixel: " + str(x) + "," + str(y) + " / " + str(grey) 
+  global laser_grey_buff, laser_grey_buff_max, laser_grey_buff_min
+  laser_grey_buff += 1
+  laser_grey_buff = laser_grey_buff%laser_grey_buff_max
+  if laser_grey_buff == 0:
+    laser_grey_buff = laser_grey_buff_min +1
+
+  # note will not always take direct path if large gaps, keep it small if doing vector with laser on
+  # time.sleep(0.01) is recommended after for smooth movement
+  pos_x = format(x/100,"02x") + format(x%100,"02x")
+  pos_y = format(y/100,"02x") + format(y%100,"02x")
+  cmd = (format(laser_grey_buff,"02x") + pos_x + pos_y +  format(grey,"02x") + "ff")
+  # print "(" + format(x,"03") + "," + format(y,"03") + ") " + '-'.join(a+b for a,b in zip(cmd[::2], cmd[1::2]))
+  serial_send(ser, cmd)
+  time.sleep(delay)
+  # raw_input("Press Enter to continue...")
+
 
 def raster_draw_pixel(ser,x,y,grey=0,delay=0.2): # X and Y range: 0-512, grey range 0-254 [0=darkest, 254=lightest besides not firing.] 
   # I find if using grey values, to skip 2 pixels horizontal or it won't show up
@@ -439,6 +479,7 @@ def fan_3_sec(ser):
 def laser_reset_calibrate(ser):
   # sometimes you just have to unplug everything to fix issues
   stop_laser_raster_mode(ser) # make sure not in raster mode
+  stop_laser_raster_grey_mode(ser) # make sure not in raster mode
   config_open(ser)
   config_run(True)
   set_motor_speed(ser, 65)
@@ -504,36 +545,45 @@ def example_raster_draw_line_break(ser, skip=1):
 
 # drawing various shades using raster api
 def example_raster_draw_shades(ser, skip=1):
+  stop_laser_raster_grey_mode(ser) # make sure not in raster mode
   set_laser_power(ser, 1) # just a visible laser, nothing really will cut
   set_fan_speed(ser, 10)
   set_motor_speed(ser, 65)
-  set_laser_speed(ser, 105)
+  set_laser_speed(ser, 170)
   set_laser_box(ser, 0, 0, 512, 512)  # quick calibration
   time.sleep(3)
   set_laser_box(ser, 0, 10, 350, 30) # outline the area we are going to draw
   time.sleep(3)
   # lets draw the box
-  set_laser_power(ser, 8)
-  set_laser_box(ser, 0, 10, 350, 30) # outline the area we are going to draw
-  time.sleep(3)
+  # set_laser_power(ser, 8)
+  # set_laser_box(ser, 0, 10, 350, 30) # outline the area we are going to draw
+  # time.sleep(3)
   set_laser_power(ser, 1)
   set_laser_position(ser, 10,0)
   time.sleep(2)
   start_laser_raster_mode(ser)
-  for y in range(10, 30):
+  for y in range(10, 30, skip):
     for x in range(0,350, skip):
       grey = 0
-      if x > 25: grey = 50
+      # if x > 25: grey = 50
+      # if x > 50: grey = 100
+      # if x > 75: grey = 150
+      # if x > 100: grey = 200
+      # if x > 125: grey = 250
+      # if x > 150: grey = 200
+      # if x > 160: grey = 250
+      # if x > 165: grey = 254
+      # if x > 175: grey = 250
+      # if x > 195: grey = 150
+      # if x > 200: grey = 100
+      # if x > 250: grey = 50
+      # if x > 300: grey = 0
       if x > 50: grey = 100
-      if x > 75: grey = 150
-      if x > 100: grey = 200
-      if x > 125: grey = 250
-      if x > 150: grey = 200
-      if x > 175: grey = 150
-      if x > 200: grey = 100
+      if x > 100: grey = 254
+      if x > 175: grey = 100
       if x > 250: grey = 50
       if x > 300: grey = 0
-      raster_draw_pixel(ser, x, y, grey, 0.105)
+      raster_draw_grey_pixel(ser, x, y, grey, 0.170)
         # maybe I should have it draw backwards alternating lines to save a trip back
   stop_laser_raster_mode(ser)
   set_laser_power(ser,1)
@@ -1011,7 +1061,7 @@ Expected Syntax:
       elif user_input=='7':
         example_raster_draw_line_break(ser)
       elif user_input=='8':
-        example_raster_draw_shades(ser, 2)
+        example_raster_draw_shades(ser, 3)
       elif user_input=='9':
         example_raster_draw_angle(ser, 2)
       elif user_input=='9A':
@@ -1026,6 +1076,7 @@ Expected Syntax:
         laser_reset_calibrate(ser)
       elif user_input=='S':
         stop_laser_raster_mode(ser)
+        stop_laser_raster_grey_mode(ser)
       elif user_input=='B':
         parse_init_resp( laser_reboot(ser) )
       elif user_input=='P':
