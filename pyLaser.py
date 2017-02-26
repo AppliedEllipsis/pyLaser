@@ -785,7 +785,7 @@ Expected Syntax:
       print("Available Com Ports (restart the app to get new list)")
       print(avail_com_ports)
       print("\nQ to quit.")
-      user_input = raw_input("\nWhat com port should we connect to? ")
+      user_input = raw_input("\nWhat com port should we connect to? (case sensitive) ")
       if user_input.upper()=='Q':
         sys.exit()
       elif user_input in avail_com_ports:
