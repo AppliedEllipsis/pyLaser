@@ -564,7 +564,7 @@ def example_raster_draw_shades(ser, skip=1):
   start_laser_raster_mode(ser)
   for y in range(10, 30, 5):
     for x in range(0,350, skip):
-      grey = 1
+      grey = 10
       # if x > 25: grey = 50
       # if x > 50: grey = 100
       # if x > 75: grey = 150
@@ -579,8 +579,8 @@ def example_raster_draw_shades(ser, skip=1):
       # if x > 250: grey = 50
       # if x > 300: grey = 0
 
-      if x > 100: grey = 254
-      if x > 200: grey = 1
+      if x > 100: grey = 250
+      if x > 200: grey = 10
       raster_draw_grey_pixel(ser, x, y, grey, 0.170)
         # maybe I should have it draw backwards alternating lines to save a trip back
   stop_laser_raster_mode(ser)
