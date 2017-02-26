@@ -72,7 +72,7 @@ Expected Syntax:
   ''' % os.path.basename(__file__)
 
   try:
-    opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
+    opts, args = getopt.getopt(argv,"hi:o:",[])
   except getopt.GetoptError:
     print(help_info)
     sys.exit(2)
