@@ -3,10 +3,10 @@
 import os, sys, getopt, re
 
 import serial #pyserial
-# from PIL import Image
+from PIL import Image
 # from PIL import ImageTk
 # from PIL import ImageFilter
-import time, glob
+import time, glob, math
 
 module_info = {
 'NAME': "pyLaser",
@@ -561,7 +561,7 @@ def example_raster_draw_shades(ser, skip=1):
   set_laser_power(ser, 1)
   set_laser_position(ser, 10,0)
   time.sleep(2)
-  start_laser_raster_mode(ser)
+  start_laser_raster_grey_mode(ser)
   for y in range(10, 30, 4):
     for x in range(0,350, skip):
       grey = 10
@@ -583,10 +583,57 @@ def example_raster_draw_shades(ser, skip=1):
       # if x > 200: grey = 10
       raster_draw_grey_pixel(ser, x, y, grey, 0.050)
         # maybe I should have it draw backwards alternating lines to save a trip back
-  stop_laser_raster_mode(ser)
+  stop_laser_raster_grey_mode(ser)
   set_laser_power(ser,1)
   fan_3_sec(ser)
 
+
+def example_raster_draw_grey_picture(ser, image_path):
+  # image conversions from http://stackoverflow.com/questions/1109422/getting-list-of-pixel-values-from-pil
+  if image_path == '':
+    print "\n\tERROR: No image file provided"
+    return
+  if not os.path.isfile(image_path):
+      print "\n\tERROR: No image file exists"
+      return
+  i = Image.open(image_path)
+  pixels = i.load()
+  width, height = i.size
+  stop_laser_raster_grey_mode(ser) # make sure not in raster mode
+  set_laser_power(ser, 1) # just a visible laser, nothing really will cut
+  set_fan_speed(ser, 10)
+  set_motor_speed(ser, 65)
+  speed_ms = 125
+  speed_s = speed_ms/1000.0
+  set_laser_speed(ser, speed_ms)
+  # set_laser_box(ser, 0, 0, 512, 512)  # quick calibration
+  # time.sleep(3)
+  # set_laser_box(ser, 0, 10, 350, 30) # outline the area we are going to draw
+  # time.sleep(3)
+  # lets draw the box
+  # set_laser_power(ser, 8)
+  # set_laser_box(ser, 0, 10, 350, 30) # outline the area we are going to draw
+  # time.sleep(3)
+  set_laser_power(ser, 1)
+  set_laser_position(ser, 10,0)
+  time.sleep(1)
+  start_laser_raster_grey_mode(ser)
+  for y in range(0, height, 3):
+    for x in range(0, width, 3):
+      if pixels[x, y] != (255,255,255):
+        # bw_value = int(round(sum(pixels[x, y]) / float(len(pixels[x, y]))))
+        luma = (0.3 * pixels[x, y][0]) + (0.59 * pixels[x, y][1]) + (0.11 * pixels[x, y][2])
+        luma = int(math.ceil(luma))
+        if luma > 254: luma = 254
+        # if round(sum(cpixel)) / float(len(cpixel)) > 127: bw_127 = cpixel
+        # print "(%d, %d) - %s" % (x,y,pixels[x, y])
+        # print "(%d, %d) - %s" % (x,y,luma)
+        raster_draw_grey_pixel(ser, x, y, luma, speed_s)
+  stop_laser_raster_grey_mode(ser)
+
+# example_raster_draw_grey_picture(None, "test.png")
+# print "\nDone\n"
+# sys.exit()
 
 # draw an angle with raster positions with different skip
 def example_raster_draw_angle(ser, skip=1):
@@ -1004,6 +1051,7 @@ Expected Syntax:
            62) Vector Draw: Angle Line \ (Blink, skip 2, med) * More inaccurate
           7) Raster Draw: Line with break         9) Raster Draw: Angle Line \       9B) Raster Draw: Vertical Line
           8) Raster Draw: Draw Shade Boxes        9A) Raster Draw: Horizontal Line   9C) Raster Draw: Vector Hi (skip 2)
+          8B) Raster Draw: Grey Image #1 (hi)     8C) Raster Draw: Grey Image #2 (gradients) 8D) Raster Draw: Grey Image #3 (hi modified)
           * reset seems to be needed after some vector actions
         Lower Level Functions:
           I) Init Laser
@@ -1060,6 +1108,12 @@ Expected Syntax:
         example_raster_draw_line_break(ser)
       elif user_input=='8':
         example_raster_draw_shades(ser, 1)
+      elif user_input=='8B':
+        example_raster_draw_grey_picture(ser, "test.png")
+      elif user_input=='8C':
+        example_raster_draw_grey_picture(ser, "test2.png")
+      elif user_input=='8D':
+        example_raster_draw_grey_picture(ser, "test3.png")
       elif user_input=='9':
         example_raster_draw_angle(ser, 2)
       elif user_input=='9A':
