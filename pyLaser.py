@@ -334,7 +334,7 @@ def get_avail_serial_ports():
 
 def draw_line(ser, x1, y1, x2, y2, sleep, power=8, blink=False, skip=1):
   # add variable power levels
-  if debug: print "\tDBG: draw_line"
+  if debug: print "\tDBG: draw_line (" + str(x1) + "," + str(y1) + ") - (" + str(x2) + "," + str(y2) + ")"
   line_points = get_line((x1,y1), (x2,y2))
   if not blink: 
     set_laser_power(ser, 9)  # higher values seem to cause problems
@@ -360,6 +360,23 @@ def draw_line(ser, x1, y1, x2, y2, sleep, power=8, blink=False, skip=1):
       time.sleep(0.105) # set to the same as the laser speed or longer for best results
 
   set_laser_power(ser,1)
+
+
+
+def draw_line_raster(ser, x1, y1, x2, y2, sleep, skip=1):
+  # add variable power levels
+  if debug: print "\tDBG: draw_line_raster (" + str(x1) + "," + str(y1) + ") - (" + str(x2) + "," + str(y2) + ")"
+  line_points = get_line((x1,y1), (x2,y2))
+
+  skip_list = range(1, skip)
+  skip_num = 1
+  for xy in line_points:
+    skip_num = (skip_num+1)%skip
+    if skip_num != 1 and (xy[0] != x2 and xy[1] != y2):
+      if skip_num in skip_list:
+        if debug: print( "\t\tskipping due to skip_num not being 1 (" + str(skip_num) + ") while skipping " + str(skip) + " (" + str(xy[0]) + ", " + str(xy[1]) + ")" )
+        continue
+    raster_draw_pixel(ser, xy[0], xy[1], 0, sleep)
 
 
 
@@ -488,29 +505,134 @@ def example_raster_draw_shades(ser, skip=1):
   set_laser_speed(ser, 105)
   set_laser_box(ser, 0, 0, 512, 512)  # quick calibration
   time.sleep(3)
-  set_laser_box(ser, 0, 10, 300, 30) # outline the area we are going to draw
+  set_laser_box(ser, 0, 10, 350, 30) # outline the area we are going to draw
   time.sleep(3)
   # lets draw the box
-  set_laser_power(ser, 9)
-  set_laser_box(ser, 0, 10, 300, 30) # outline the area we are going to draw
+  set_laser_power(ser, 8)
+  set_laser_box(ser, 0, 10, 350, 30) # outline the area we are going to draw
   time.sleep(3)
   set_laser_power(ser, 1)
   set_laser_position(ser, 10,0)
   time.sleep(2)
   start_laser_raster_mode(ser)
   for y in range(10, 30):
-    for x in range(0,512, skip):
+    for x in range(0,350, skip):
       grey = 0
-      if x > 50: grey = 50
-      if x > 100: grey = 100
-      if x > 150: grey = 150
-      if x > 200: grey = 200
-      if x > 250: grey = 250
+      if x > 25: grey = 50
+      if x > 50: grey = 100
+      if x > 75: grey = 150
+      if x > 100: grey = 200
+      if x > 125: grey = 250
+      if x > 150: grey = 200
+      if x > 175: grey = 150
+      if x > 200: grey = 100
+      if x > 250: grey = 50
+      if x > 300: grey = 0
       raster_draw_pixel(ser, x, y, grey, 0.105)
         # maybe I should have it draw backwards alternating lines to save a trip back
   stop_laser_raster_mode(ser)
   set_laser_power(ser,1)
   fan_3_sec(ser)
+
+
+# draw an angle with raster positions with different skip
+def example_raster_draw_angle(ser, skip=1):
+  stop_laser_raster_mode(ser) # make sure not in raster mode
+  set_laser_power(ser, 1) # just a visible laser, nothing really will cut
+  set_fan_speed(ser, 10)
+  set_motor_speed(ser, 65)
+  set_laser_speed(ser, 200)
+  set_laser_box(ser, 0, 0, 512, 512) # quick calibration
+  time.sleep(2)
+  set_laser_position(ser, 0,0)
+  time.sleep(3)
+  set_fan_speed(ser, 10)
+  start_laser_raster_mode(ser)
+  for x in range(0,513, skip):
+    raster_draw_pixel(ser, x, x, 0, 0.2)
+  stop_laser_raster_mode(ser)
+  set_laser_power(ser,1)
+  fan_3_sec(ser)
+
+
+
+# draw an angle with raster positions with different skip
+def example_raster_draw_h_line(ser, skip=1):
+  stop_laser_raster_mode(ser) # make sure not in raster mode
+  set_laser_power(ser, 1) # just a visible laser, nothing really will cut
+  set_fan_speed(ser, 10)
+  set_motor_speed(ser, 65)
+  set_laser_speed(ser, 105)
+  set_laser_box(ser, 0, 0, 512, 512) # quick calibration
+  time.sleep(2)
+  set_laser_position(ser, 0,0)
+  time.sleep(3)
+  set_fan_speed(ser, 10)
+  start_laser_raster_mode(ser)
+  for x in range(0,513, skip):
+    raster_draw_pixel(ser, x, 10, 0, 0.105)
+  stop_laser_raster_mode(ser)
+  set_laser_power(ser,1)
+  fan_3_sec(ser)
+
+
+
+
+# draw an angle with raster positions with different skip
+def example_raster_draw_v_line(ser, skip=1):
+  stop_laser_raster_mode(ser) # make sure not in raster mode
+  set_laser_power(ser, 1) # just a visible laser, nothing really will cut
+  set_fan_speed(ser, 10)
+  set_motor_speed(ser, 65)
+  set_laser_speed(ser, 105)
+  set_laser_box(ser, 0, 0, 512, 512) # quick calibration
+  time.sleep(2)
+  set_laser_position(ser, 0,0)
+  time.sleep(3)
+  set_fan_speed(ser, 10)
+  start_laser_raster_mode(ser)
+  for y in range(0,513, skip):
+    raster_draw_pixel(ser, 10, y, 0, 0.105)
+  stop_laser_raster_mode(ser)
+  set_laser_power(ser,1)
+  fan_3_sec(ser)
+
+
+
+# Example to Vector Write the word Hi using Raster API
+def example_raster_vector_hi(ser, skip=1, delay=0.105):
+  stop_laser_raster_mode(ser) # make sure not in raster mode
+  set_laser_power(ser, 1) # just a visible laser, nothing really will cut
+  set_fan_speed(ser, 10)
+  set_motor_speed(ser, 65)
+  set_laser_speed(ser, 105)
+  set_laser_box(ser, 0, 0, 512, 512) # quick calibration
+  time.sleep(2)
+  set_laser_box(ser, 64, 132, 148, 235) # outline the area we are going to draw
+  time.sleep(2)
+  # Draw H
+  set_laser_position(ser,64, 223)
+  time.sleep(3)
+  start_laser_raster_mode(ser)
+  draw_line_raster(ser, 64, 223, 84, 126, delay, skip)
+  # set_laser_position(ser, 73, 170)
+  # time.sleep(move_speed_move_delay)
+  draw_line_raster(ser, 73, 170, 113, 176, delay, skip)
+  # set_laser_position(ser, 125, 132)
+  # time.sleep(move_speed_move_delay)
+  draw_line_raster(ser, 125, 132, 100, 230, delay, skip)
+  # Draw i
+  # set_laser_position(ser, 129, 235)
+  # time.sleep(move_speed_move_delay)
+  draw_line_raster(ser, 129, 235, 144, 182, delay, skip)
+  # set_laser_position(ser, 148, 165)
+  # time.sleep(move_speed_move_delay)
+  draw_line_raster(ser, 148, 165, 150, 158, delay, skip)
+  stop_laser_raster_mode(ser)
+  set_laser_power(ser, 1)
+  fan_3_sec(ser)
+
+
 
 
 # Example to Vector Write the word Hi
@@ -827,12 +949,12 @@ Expected Syntax:
           6) Vector Draw: Angle Line \ (Blink, skip 3, fast) * More inaccurate
            61) Vector Draw: Angle Line \ (Blink, skip 1, slow) * More inaccurate
            62) Vector Draw: Angle Line \ (Blink, skip 2, med) * More inaccurate
-          7) Raster Draw: Line with break
-          8) Raster Draw: Draw Shade Boxes
-
+          7) Raster Draw: Line with break         9) Raster Draw: Angle Line \       9B) Raster Draw: Vertical Line
+          8) Raster Draw: Draw Shade Boxes        9A) Raster Draw: Horizontal Line   9C) Raster Draw: Vector Hi (skip 2)
+          * reset seems to be needed after some vector actions
         Lower Level Functions:
           I) Init Laser
-          B) Reboot Laser
+          B) Reboot Laser       S) Stop Laser Raster Mode
           C) Calibrate/Reboot Laser
           P) Laser Power 0
             P#) Laser Power 0-10
@@ -885,10 +1007,20 @@ Expected Syntax:
         example_raster_draw_line_break(ser)
       elif user_input=='8':
         example_raster_draw_shades(ser, 2)
+      elif user_input=='9':
+        example_raster_draw_angle(ser, 2)
+      elif user_input=='9A':
+        example_raster_draw_h_line(ser, 2)
+      elif user_input=='9B':
+        example_raster_draw_v_line(ser, 2)
+      elif user_input=='9C':
+        example_raster_vector_hi(ser, 2, 0.105)
       elif user_input=='I':
         parse_init_resp( init_laser(ser) )
       elif user_input=='C':
         laser_reset_calibrate(ser)
+      elif user_input=='S':
+        stop_laser_raster_mode(ser)
       elif user_input=='B':
         parse_init_resp( laser_reboot(ser) )
       elif user_input=='P':
