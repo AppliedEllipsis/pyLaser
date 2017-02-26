@@ -21,6 +21,6 @@
 * Smart Fan Control
 * Some more config tweaks
 * Cross platform options, should be easy since in python
- * Python 2/3 compatiability, written on python 2.7+
+ * Python 2/3 compatiability, written on python 2.7
 * Sample Data
 * Image manipulation
