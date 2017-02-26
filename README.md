@@ -11,7 +11,7 @@ Right now, I'm still prototyping and writing this, the code will be cleaner in t
 **[Source](https://github.com/AppliedEllipsis/pyLaser/blob/master/pyLaser.py)**
 
 **Hardware**
-* The laser this is developed against is a cheap sub-$100 cnc 1000mw laser from China.
+* The laser this is developed against is a [cheap sub-$100, shipped, cnc 1000mw laser from China](https://www.wish.com/c/5852c8be0124c76a0a276aec).
 * The laser enclosure is unbranded
 * It is listed as HW V2, Firmware V2.4
 * The software it uses is HTOPW.
