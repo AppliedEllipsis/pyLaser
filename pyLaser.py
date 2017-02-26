@@ -233,8 +233,11 @@ def laser_reboot(ser): # returns same info as init, actually today it seems to r
   return serial_read(ser)
 
 
-def wait_on_ready_status(ser): # not sure this really is ready, it seems to throw a 01 or 02 occationally while doing some actions
-  if debug: print "\tDBG: wait_on_ready_status"
+def check_for_heartbeat(ser): # not sure this really is ready, it seems to throw a 01 or 02 occationally while doing some actions
+  # my latest theory is 3e01 and 3e02 are heartbeats the laser sends during raster/engraving processes
+  # my theory is alternates between the two so if you have a large buffer that has not been read, you can tell the difference of the previous sent packet
+  # this can be used to ensure the laser is still online while performing large tasks
+  if debug: print "\tDBG: check_for_heartbeat"
   while 1:
     print 'getting resp...'
     resp = serial_read(ser)
