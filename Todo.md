@@ -13,15 +13,14 @@
 * Input sanatization
 * Add power off function
 * Boxing of input data
-* Top Left, Bottom Right, Center Positining
 * GUI, probably web front-end
  * Mobile Support
-* Duplicate Protocol on ESP8266 to make it Wifi
+* Duplicate Protocol on ESP8266 to make it Wifi, maybe
 * Dether Patterns
 * Optimal default settings for different materials
 * Smart Fan Control
-* Autonomous mode
-* Speed Control from config, gap speed, etc - some are added
+* Some more config tweaks
 * Cross platform options, should be easy since in python
+ * Python 2/3 compatiability, written on python 2.7+
 * Sample Data
 * Image manipulation
