@@ -75,21 +75,36 @@ laser_buff_max = 121
 laser_buff = laser_buff_min
 
 
+
+
+def config_open(ser):
+  if debug: print "\tDBG: config_open"
+  global laser_buff, laser_buff_max, laser_buff_min
+  laser_buff = laser_buff_min +1
+  serial_send(ser, ("15 00 00 00 00 00 FF"))
+  serial_send(ser, ("1B 00 00 00 00 00 FF")) # send box
+  serial_send(ser, ("1B 04 04    32 01 FF")) # send box
+  serial_send(ser, ("36 00 00 00 00 00 FF"))
+  # read 3E 36 28 01 01 00 00 00 00 FF FF
+  time.sleep(.2)
+  return serial_read(ser)
+
 def start_laser_raster_mode(ser):
   if debug: print "\tDBG: start_laser_raster_mode"
   global laser_buff, laser_buff_max, laser_buff_min
   laser_buff = laser_buff_min +1
-  serial_send(ser, ("150101000000FF"))
+  serial_send(ser, ("15 01 01 00 00 00 FF"))
   time.sleep(.2)
 
 def stop_laser_raster_mode(ser):
   if debug: print "\tDBG: stop_laser_raster_mode"
   global laser_buff
-  serial_send(ser, ( (format(laser_buff,"02x") + "0909090909FF")))
+  serial_send(ser, ( (format(laser_buff,"02x") + "09 09 09 09 09 FF")))
   time.sleep(.2)
 
 def raster_draw_pixel(ser,x,y,grey=0,delay=0.2): # X and Y range: 0-512, grey range 0-254 [0=darkest, 254=lightest besides not firing.] 
   # I find if using grey values, to skip 2 pixels horizontal or it won't show up
+  # Actually, I don't think grey works on this machine, even using stock software, sample images are not grey when done in grey mode
   if debug: print "\tDBG: raster_draw_pixel: " + str(x) + "," + str(y) + " / " + str(grey) 
   global laser_buff, laser_buff_max, laser_buff_min
   laser_buff += 1
@@ -107,6 +122,16 @@ def raster_draw_pixel(ser,x,y,grey=0,delay=0.2): # X and Y range: 0-512, grey ra
   time.sleep(delay)
   # raw_input("Press Enter to continue...")
 
+
+def config_run(ser, bool_val=True): # run checkbox from settings
+  if debug: print "\tDBG: config_run: " + str(bool_val)
+  if bool_val:
+    serial_send(ser,  "1C 00 00 00 00 00 FF")
+  else:
+    serial_send(ser,  "18 00 00 00 00 00 FF")
+  time.sleep(.12)
+
+
 def set_laser_move(ser, direction): # Moves laser without x,y towards a direction 1=up, 2=down, 3=left, 4=right
   if debug: print "\tDBG: set_laser_move: " + str(direction)
   serial_send(ser, ("19" + format(direction,"02x") + "00000000ff"))
@@ -115,7 +140,7 @@ def set_laser_move(ser, direction): # Moves laser without x,y towards a directio
 
 def init_laser(ser): # seems optional but returns some nice to have info
   if debug: print "\tDBG: init_laser"
-  serial_send(ser, ("1a0000000000ff"))
+  serial_send(ser, ("1a 00 00 00 00 00 ff"))
   time.sleep(.2)
   return serial_read(ser)
 
@@ -154,6 +179,16 @@ def set_fan_speed(ser, speed): # range 0-10
   time.sleep(.2)
 
 
+
+def shutdown_laser(ser): # shuts down laser, you have to replug it, or hold down red power button on it. Power button doesn't work for me.
+  if debug: print "\tDBG: shutdown_laser"
+  serial_send(ser, ("3A 00 00 00 00 00 FF"))
+  time.sleep(.2)
+  return serial_read(ser)
+
+
+
+
 def set_motor_speed(ser, speed): # range 0-100 recommended 60-75
   if debug: print "\tDBG: set_motor_speed: " + str(speed)
   # serial_send(ser, ("150000000000ff"))
@@ -163,6 +198,19 @@ def set_motor_speed(ser, speed): # range 0-100 recommended 60-75
   serial_send(ser, ("37" + format(100-speed,"02x") + "00000000ff"))
   time.sleep(.2)
   # set_laser_position(0,0)
+
+
+def set_motor_x_reverse(ser, value): # range 0-1  # checkbox from settings
+  if debug: print "\tDBG: set_motor_x_reverse: " + str(speed)
+  serial_send(ser, ("38 01" + format(value,"02x") + "00 00 00 00 FF"))
+  time.sleep(.2)
+
+
+def set_motor_y_reverse(ser, value): # range 0-1  # checkbox from settings
+  if debug: print "\tDBG: set_motor_y_reverse: " + str(speed)
+  serial_send(ser, ("39 01" + format(value,"02x") + "00 00 00 00 FF"))
+  time.sleep(.2)
+
 
 def laser_reboot(ser): # returns same info as init, actually today it seems to return something different
   if debug: print "\tDBG: laser_reboot"
@@ -193,6 +241,10 @@ def wait_on_ready_status(ser): # not sure this really is ready, it seems to thro
 def parse_init_resp(resp):
   if debug: print "\tDBG: parse_init_resp: " + resp 
   for row in resp.split("ffff"):
+    if row[0:4] == '3e3e': # triggered on reboot
+      ''
+    if row[0:4] == '3e07':
+      ''
     if row[0:4] == '3e28':
       s = row[4:18]
       print 'UID: ' + '-'.join(a+b for a,b in zip(s[::2], s[1::2]))
