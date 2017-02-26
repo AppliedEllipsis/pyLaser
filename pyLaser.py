@@ -116,14 +116,14 @@ def start_laser_raster_mode(ser):
 
 def stop_laser_raster_mode(ser):
   if debug: print "\tDBG: stop_laser_raster_mode"
-  global laser_grey_buff
-  serial_send(ser, ( (format(laser_grey_buff,"02x") + "09 09 09 09 09 FF")))
+  global laser_buff
+  serial_send(ser, ( (format(laser_buff,"02x") + "09 09 09 09 09 FF")))
   time.sleep(.2)
 
 def start_laser_raster_grey_mode(ser):
   if debug: print "\tDBG: start_laser_raster_mode"
   global laser_grey_buff, laser_grey_buff_max, laser_grey_buff_min
-  laser_grey_buff = laser_buff_min +1
+  laser_grey_buff = laser_grey_buff_min +1
   serial_send(ser, ("15 01 01 00 00 00 FF"))
   # 15 00 00 00 00 00 FF # pause
   time.sleep(.2)
@@ -621,31 +621,31 @@ def example_raster_draw_grey_picture(ser, image_path):
   for y in range(0, height, 2):
     for x in range(0, width, 3):
       if pixels[x, y] != (255,255,255):
-        # bw_value = int(round(sum(pixels[x, y]) / float(len(pixels[x, y]))))
+        bw_value = int(round(sum(pixels[x, y]) / float(len(pixels[x, y]))))
         # bw_value = 254 - bw_value
         # if bw_value < 0: bw_value = 0
-        luma = (0.3 * pixels[x, y][0]) + (0.59 * pixels[x, y][1]) + (0.11 * pixels[x, y][2])
-        luma = int(math.ceil(luma))
-        if luma > 254: luma = 254
-        bw_value = 254 - luma
-        if bw_value < 0: bw_value = 0
+        # luma = (0.3 * pixels[x, y][0]) + (0.59 * pixels[x, y][1]) + (0.11 * pixels[x, y][2])
+        # luma = int(math.ceil(luma))
+        # if luma > 254: luma = 254
+        # bw_value = 254 - luma
+        # if bw_value < 0: bw_value = 0
         # if round(sum(cpixel)) / float(len(cpixel)) > 127: bw_127 = cpixel
         # print "(%d, %d) - %s" % (x,y,pixels[x, y])
         # print "(%d, %d) - %s" % (x,y,luma)
         # raster_draw_grey_pixel(ser, x, y, luma, speed_s)
         raster_draw_grey_pixel(ser, x, y, bw_value, speed_s)
     if y+1 < height:
-      print "reverse"
+      if debug: print( "\t\tReversing Direction")
       for x in range(width-1, -1, -3):
         if pixels[x, y+1] != (255,255,255):
-          # bw_value = int(round(sum(pixels[x, y+1]) / float(len(pixels[x, y+1]))))
+          bw_value = int(round(sum(pixels[x, y+1]) / float(len(pixels[x, y+1]))))
           # bw_value = 254 - bw_value
           # if bw_value < 0: bw_value = 0
-          luma = (0.3 * pixels[x, y+1][0]) + (0.59 * pixels[x, y+1][1]) + (0.11 * pixels[x, y+1][2])
-          luma = int(math.ceil(luma))
-          if luma > 254: luma = 254
-          bw_value = 254 - luma
-          if bw_value < 0: bw_value = 0
+          # luma = (0.3 * pixels[x, y+1][0]) + (0.59 * pixels[x, y+1][1]) + (0.11 * pixels[x, y+1][2])
+          # luma = int(math.ceil(luma))
+          # if luma > 254: luma = 254
+          # bw_value = 254 - luma
+          # if bw_value < 0: bw_value = 0
           raster_draw_grey_pixel(ser, x, y+1, bw_value, speed_s)
   stop_laser_raster_grey_mode(ser)
 
@@ -1069,7 +1069,7 @@ Expected Syntax:
            62) Vector Draw: Angle Line \ (Blink, skip 2, med) * More inaccurate
           7) Raster Draw: Line with break         9) Raster Draw: Angle Line \       9B) Raster Draw: Vertical Line
           8) Raster Draw: Draw Shade Boxes        9A) Raster Draw: Horizontal Line   9C) Raster Draw: Vector Hi (skip 2)
-          8B) Raster Draw: Grey Image #1 (hi)     8C) Raster Draw: Grey Image #2 (gradients) 8D) Raster Draw: Grey Image #3 (hi modified)
+          8B) Raster Draw: Grey Image #1 (hi)     8C) Raster Draw: Grey Image #2 (gradients) 8D) Raster Draw: Grey Image #4c (box modified)
           * reset seems to be needed after some vector actions
         Lower Level Functions:
           I) Init Laser
@@ -1131,7 +1131,7 @@ Expected Syntax:
       elif user_input=='8C':
         example_raster_draw_grey_picture(ser, "test2.png")
       elif user_input=='8D':
-        example_raster_draw_grey_picture(ser, "test3.png")
+        example_raster_draw_grey_picture(ser, "test4c.png")
       elif user_input=='9':
         example_raster_draw_angle(ser, 2)
       elif user_input=='9A':
