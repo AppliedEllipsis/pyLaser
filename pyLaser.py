@@ -1,36 +1,65 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
+
+import os, sys, getopt, re
 
 import serial #pyserial
 # from PIL import Image
 # from PIL import ImageTk
 # from PIL import ImageFilter
-import time
+import time, glob
 
-
-_ORIGINAL_ARTHOR_ = "AppliedEllippsis"
-_VERSION_ = "0.1a"
-_LICENSE_ = "See License.txt, but GPLv3 for the lazy"
+module_info = {
+'NAME': "pyLaser",
+'ORIGINAL_ARTHOR': "Applied Ellippsis", # leave this
+'ARTHOR': "Applied Ellipsis", # change this to you
+'DESCRIPTION': '''
+Python Interface for HTPOW (Cheap Chinese CNC Laser Engravers)
+''',
+'REPO_URL': 'https://github.com/AppliedEllipsis/pyLaser',
+'VERSION': "0.1a",
+'LICENSE': "See License.txt, but GPLv3 for the lazy",
+}
 
 debug = True
 
-usb_port = "com19"
-baund_rate = 115200
+def serial_connect(com_port):
+  try:
+    ser = serial.Serial(
+        port=com_port,
+        baudrate=115200,
+        parity=serial.PARITY_NONE,
+        stopbits=serial.STOPBITS_ONE,
+        bytesize=serial.EIGHTBITS,
+        timeout = 1
+    )
+    return ser
+  except:
+    return False
 
-ser = serial.Serial(
-    port=usb_port,
-    baudrate=baund_rate,
-    parity=serial.PARITY_NONE,
-    stopbits=serial.STOPBITS_ONE,
-    bytesize=serial.EIGHTBITS,
-    timeout = 1
-)
+def serial_send(ser, data):
+  # if debug: print "\tDBG: serial_send, payload=" + data
+  try:
+    data = data.replace(' ','').decode('hex')
+    ser.write(data)
+    return True
+  except:
+    return False
 
-def set_laser_speed(speed): # 0-250 
-  if debug: print "set_laser_speed: " + str(speed)
-  ser.write( ("17" + format(speed,"02x") + "00000000ff").decode("hex") )
 
-def set_laser_position(x,y): # X and Y range: 0-512 
-  if debug: print "set_laser_position: " + str(x) + ',' + str(y)
+def serial_read(ser): # 140 or timeout defined in serial connection
+  if debug: print "\tDBG: serial_read"
+  ret = ser.read(140).encode("hex") 
+  print "\tDBG: payload=" + ret
+  return ret
+
+
+def set_laser_speed(ser, speed): # 0-250 
+  if debug: print "\tDBG: set_laser_speed: " + str(speed)
+  serial_send(ser, ("17" + format(speed,"02x") + "00000000ff") )
+  time.sleep(.2)
+
+def set_laser_position(ser, x,y): # X and Y range: 0-512 
+  if debug: print "\tDBG: set_laser_position: " + str(x) + ',' + str(y)
   # note will not always take direct path if large gaps, keep it small if doing vector with laser on
   # time.sleep(0.01) is recommended after for smooth movement
   # use power 9 max, power 10 does not work properly with positioning
@@ -38,7 +67,7 @@ def set_laser_position(x,y): # X and Y range: 0-512
   pos_y = format(y/100,"02x") + format(y%100,"02x")
   cmd = ("18" + pos_x + pos_y + "00ff")
   # print "(" + str(x) + "," + str(y) + ") " + cmd
-  ser.write( cmd.decode("hex") )
+  serial_send(ser, cmd)
 
 
 laser_buff_min = 60
@@ -46,19 +75,22 @@ laser_buff_max = 121
 laser_buff = laser_buff_min
 
 
-def start_laser_raster_mode():
-  if debug: print "start_laser_raster_mode"
+def start_laser_raster_mode(ser):
+  if debug: print "\tDBG: start_laser_raster_mode"
   global laser_buff, laser_buff_max, laser_buff_min
   laser_buff = laser_buff_min +1
-  ser.write( ("150101000000FF").decode("hex") )
+  serial_send(ser, ("150101000000FF"))
+  time.sleep(.2)
 
-def stop_laser_raster_mode():
-  if debug: print "stop_laser_raster_mode"
+def stop_laser_raster_mode(ser):
+  if debug: print "\tDBG: stop_laser_raster_mode"
   global laser_buff
-  ser.write(( (format(laser_buff,"02x") + "0909090909FF").decode("hex") ))
+  serial_send(ser, ( (format(laser_buff,"02x") + "0909090909FF")))
+  time.sleep(.2)
 
-def raster_draw_pixel(x,y,grey=0): # X and Y range: 0-512, grey range 0-254 * I don't really notice grey values with this.
-  if debug: print "raster_draw_pixel: " + str(x) + "," + str(y) + " / " + str(grey) 
+def raster_draw_pixel(ser,x,y,grey=0,delay=0.2): # X and Y range: 0-512, grey range 0-254 [0=darkest, 254=lightest besides not firing.] 
+  # I find if using grey values, to skip 2 pixels horizontal or it won't show up
+  if debug: print "\tDBG: raster_draw_pixel: " + str(x) + "," + str(y) + " / " + str(grey) 
   global laser_buff, laser_buff_max, laser_buff_min
   laser_buff += 1
   laser_buff = laser_buff%laser_buff_max
@@ -70,73 +102,80 @@ def raster_draw_pixel(x,y,grey=0): # X and Y range: 0-512, grey range 0-254 * I 
   pos_x = format(x/100,"02x") + format(x%100,"02x")
   pos_y = format(y/100,"02x") + format(y%100,"02x")
   cmd = (format(laser_buff,"02x") + pos_x + pos_y +  format(grey,"02x") + "ff")
-  print "(" + format(x,"03") + "," + format(y,"03") + ") " + '-'.join(a+b for a,b in zip(cmd[::2], cmd[1::2]))
-  ser.write( cmd.decode("hex") )
+  # print "(" + format(x,"03") + "," + format(y,"03") + ") " + '-'.join(a+b for a,b in zip(cmd[::2], cmd[1::2]))
+  serial_send(ser, cmd)
+  time.sleep(delay)
   # raw_input("Press Enter to continue...")
 
-def set_laser_move(direction): # Moves laser without x,y towards a direction 1=up, 2=down, 3=left, 4=right
-  if debug: print "set_laser_move: " + str(direction)
-  ser.write( ("19" + format(direction,"02x") + "00000000ff").decode("hex") )
+def set_laser_move(ser, direction): # Moves laser without x,y towards a direction 1=up, 2=down, 3=left, 4=right
+  if debug: print "\tDBG: set_laser_move: " + str(direction)
+  serial_send(ser, ("19" + format(direction,"02x") + "00000000ff"))
+  time.sleep(.12)
 
 
-def init_laser(): # seems optional but returns some nice to have info
-  if debug: print "init_laser"
-  ser.write( ("1a0000000000ff").decode("hex") )
-  return get_laser_resp()
+def init_laser(ser): # seems optional but returns some nice to have info
+  if debug: print "\tDBG: init_laser"
+  serial_send(ser, ("1a0000000000ff"))
+  time.sleep(.2)
+  return serial_read(ser)
 
 
-def set_laser_box(x1, y1, x2, y2): # X and Y range: 0-512
-  if debug: print "set_laser_box"
+def set_laser_box(ser, x1, y1, x2, y2): # X and Y range: 0-512
+  if debug: print "\tDBG: set_laser_box: (" + str(x1) + "," + str(y1) + ") - (" + str(x2) + "," + str(y2) + ")"
   pos_x1 = format(x1/100,"02x") + format(x1%100,"02x")
   pos_y1 = format(y1/100,"02x") + format(y1%100,"02x")
   pos_x2 = format(x2/100,"02x") + format(x2%100,"02x")
   pos_y2 = format(y2/100,"02x") + format(y2%100,"02x")
-  # ser.write("ffffffff")
-  ser.write(("1B" + pos_x1 + pos_y1 + "00FF").decode("hex"))
-  ser.write(("1B" + pos_x2 + pos_y2 + "01FF").decode("hex"))
-  ser.write(("1C0000000000FF").decode("hex"))
+  # serial_send("ffffffff")
+  serial_send(ser, "1B" + pos_x1 + pos_y1 + "00FF" )
+  time.sleep(.2)
+  serial_send(ser, "1B" + pos_x2 + pos_y2 + "01FF" )
+  time.sleep(.2)
+  serial_send(ser, "1C0000000000FF")
+  time.sleep(.2)
 
 
-def stop_laser_job_center(): # take box and find center, don't do write in function 41,84 
-  if debug: print "stop_laser_job_center"
-  set_laser_position(0,0) # change to center of x,y later
-  # ser.write("180128005400FF".decode("hex")) # original data from sample
+def stop_laser_job_center(ser): # take box and find center, don't do write in function 41,84 
+  if debug: print "\tDBG: stop_laser_job_center"
+  set_laser_position(ser, 0,0) # change to center of x,y later
+  time.sleep(.2)
+  # serial_send(ser,"180128005400FF") # original data from sample
 
 
-def set_laser_power(power): # range 0-10 (Don't use 10, it messes up movement)
-  if debug: print "set_laser_power: " + str(power)
-  ser.write( ("33" + format(power,"02x") + "00000000ff").decode("hex") )
+def set_laser_power(ser, power): # range 0-10 (Don't use 10, it messes up movement)
+  if debug: print "\tDBG: set_laser_power: " + str(power)
+  serial_send(ser, ("33" + format(power,"02x") + "00000000ff"))
+  time.sleep(.2)
 
 
-def set_fan_speed(speed): # range 0-10
-  if debug: print "set_fan_speed: " + str(speed)
-  ser.write( ("34" + format(speed,"02x") + "00000000ff").decode("hex") )
+def set_fan_speed(ser, speed): # range 0-10
+  if debug: print "\tDBG: set_fan_speed: " + str(speed)
+  serial_send(ser, ("34" + format(speed,"02x") + "00000000ff"))
+  time.sleep(.2)
 
 
-def set_motor_speed(speed): # range 0-100 recommended 60-75
-  if debug: print "set_motor_speed: " + str(speed)
-  # ser.write( ("150000000000ff").decode("hex") )
+def set_motor_speed(ser, speed): # range 0-100 recommended 60-75
+  if debug: print "\tDBG: set_motor_speed: " + str(speed)
+  # serial_send(ser, ("150000000000ff"))
   # set_laser_box(0,0,150,150)
-  # ser.write( ("360000000000ff").decode("hex") )
-  # return get_laser_resp()
-  ser.write( ("37" + format(100-speed,"02x") + "00000000ff").decode("hex") )
+  # serial_send(ser, ("360000000000ff"))
+  # return serial_read(ser)
+  serial_send(ser, ("37" + format(100-speed,"02x") + "00000000ff"))
+  time.sleep(.2)
   # set_laser_position(0,0)
 
-def reboot_laser(): # returns same info as init
-  if debug: print "reboot_laser"
-  ser.write( ("fe0000000000ff").decode("hex") )
-  return get_laser_resp()
+def laser_reboot(ser): # returns same info as init, actually today it seems to return something different
+  if debug: print "\tDBG: laser_reboot"
+  serial_send(ser, "FE 00 00 00 00 00 FF")
+  time.sleep(.2)
+  return serial_read(ser)
 
 
-def get_laser_resp(): # 140 or timeout defined in serial connection
-  if debug: print "get_laser_resp"
-  return ser.read(140).encode("hex") 
-
-def wait_on_ready_status(): # not sure this really is ready, it seems to throw a 01 or 02 occationally while doing some actions
-  if debug: print "wait_on_ready_status"
+def wait_on_ready_status(ser): # not sure this really is ready, it seems to throw a 01 or 02 occationally while doing some actions
+  if debug: print "\tDBG: wait_on_ready_status"
   while 1:
     print 'getting resp...'
-    resp = get_laser_resp()
+    resp = serial_read(ser)
     print resp
     if "ffff" in resp:
       resp = resp.split("ffff")
@@ -150,8 +189,9 @@ def wait_on_ready_status(): # not sure this really is ready, it seems to throw a
       print 'waiting 2...'
       time.sleep(0.1)
 
+
 def parse_init_resp(resp):
-  if debug: print "parse_init_resp"
+  if debug: print "\tDBG: parse_init_resp: " + resp 
   for row in resp.split("ffff"):
     if row[0:4] == '3e28':
       s = row[4:18]
@@ -194,23 +234,65 @@ def parse_init_resp(resp):
   # 3e 29 44050000000000 #    = 9h 28m
   # 3e 29 02060000000000 # 02   = 10h 02m
 
-def draw_line(x1,y1,x2,y2,sleep):
-  # skip not used yet
-  if debug: print "draw_line"
-  line_points = get_line((x1,y1), (x2,y2))
-  set_laser_power(8)  # higher values seem to cause problems
-  time.sleep(0.2)
+
+
+def get_avail_serial_ports():
+    """ Lists serial port names
+
+        :raises EnvironmentError:
+            On unsupported or unknown platforms
+        :returns:
+            A list of the serial ports available on the system
+    """
+    # Original Source: http://stackoverflow.com/questions/12090503/listing-available-com-ports-with-python
+    if sys.platform.startswith('win'):
+        ports = ['COM%s' % (i + 1) for i in range(256)]
+    elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+        # this excludes your current terminal "/dev/tty"
+        ports = glob.glob('/dev/tty[A-Za-z]*')
+    elif sys.platform.startswith('darwin'):
+        ports = glob.glob('/dev/tty.*')
+    else:
+        raise EnvironmentError('Unsupported platform')
+
+    result = []
+    for port in ports:
+        try:
+            s = serial.Serial(port)
+            s.close()
+            result.append(port)
+        except (OSError, serial.SerialException, serial.serialutil.SerialException):
+            pass
+    return result
+
+
+def draw_line(ser, x1, y1, x2, y2, sleep, power=8, blink=False, skip=1):
+  # add variable power levels
+  if debug: print "\tDBG: draw_line"
+  line_points = get_line((x1,y1), (x2,y2), skip)
+  if not blink: 
+    set_laser_power(ser, 9)  # higher values seem to cause problems
+  else:
+    set_laser_power(ser, 1)
   for xy in line_points:
-    print str(xy[0]) + ', ' + str(xy[1])
-    set_laser_position(xy[0],xy[1])
-    time.sleep(sleep)
-  set_laser_power(1)
-  time.sleep(0.2)
+    # print str(xy[0]) + ', ' + str(xy[1])
+    set_laser_position(ser, xy[0], xy[1])
+    if blink: 
+      time.sleep(0.105) # set to the same as the laser speed or longer for best results
+      set_laser_power(ser, 9)
+      time.sleep(0.105) # set to the same as the laser speed or longer for best results
+      set_laser_power(ser, 0)
+    else:
+      time.sleep(0.105) # set to the same as the laser speed or longer for best results
+
+  set_laser_power(ser,1)
 
 
-def get_line(start, end):
-    if debug: print "get_line: " + str(start) + str(end)
+
+def get_line(start, end, skip=1): # Note skip can cause missing lines
+    if debug: print "\tDBG: get_line: " + str(start) + str(end)
     # Bresenham's Line Algorithm
+    # Original Source: http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm#Python
     x1, y1 = start
     x2, y2 = end
     dx = x2 - x1
@@ -238,7 +320,7 @@ def get_line(start, end):
     # Iterate over bounding box generating points between start and end
     y = y1
     points = []
-    for x in range(x1, x2 + 1):
+    for x in range(x1, x2 + 1, skip):
         coord = (y, x) if is_steep else (x, y)
         points.append(coord)
         error -= abs(dy)
@@ -252,246 +334,531 @@ def get_line(start, end):
     return points
 
 
+def fan_3_sec(ser):
+  if debug: print "\tDBG: Running fan for a few sec"
+  time.sleep(3)
+  set_fan_speed(ser,0)
+
+
+def laser_reset_calibrate(ser):
+  # sometimes you just have to unplug everything to fix issues
+  stop_laser_raster_mode(ser) # make sure not in raster mode
+  set_motor_speed(ser,65)
+  set_laser_speed(ser,105)
+  set_fan_speed(ser,10)
+  set_laser_power(ser,1)
+  parse_init_resp(laser_reboot(ser))
+  time.sleep(3)
+  set_motor_speed(ser,65)
+  set_laser_speed(ser,105)
+  set_fan_speed(ser,0)
+  set_laser_power(ser,1)
+  set_laser_position(ser,0,0)
+  time.sleep(3)
+  set_laser_position(ser,512,512)
+  time.sleep(3)
+  set_laser_position(ser,0,0)
+  time.sleep(3)
 
 
 
 
 
 
-
-
-
-
-# parse_init_resp(init_laser())
-# time.sleep(0.1)
-# wait_on_ready_status()
-# set_laser_power(1) # just a visible laser, nothing really will cut
-# raw_input("Press Enter to start the dance...")
-
-
-
-
-
-
-
-# # drawing a line with a break using raster api
-# set_laser_power(1) # just a visible laser, nothing really will cut
-# set_fan_speed(10)
-# set_motor_speed(65)
-# set_laser_speed(105)
-# set_laser_box(0,0,512,512)
-# time.sleep(2)
-# set_laser_position(0,0)
-# time.sleep(2)
-# start_laser_raster_mode()
-# for y in range(10,12):
-#   for x in range(0,512):
-#     if not (x > 220+y and x<380+y):
-#       raster_draw_pixel(x,y)  # go line by line, it does not like angles with this mode
-#       time.sleep(0.105) # set to the same as the laser speed
-# stop_laser_raster_mode()
-
-
-
-
+# drawing a line with a break using raster api
+def example_raster_draw_line_break(ser, skip=1):
+  set_laser_power(ser, 1) # just a visible laser, nothing really will cut
+  set_fan_speed(ser, 10)
+  set_motor_speed(ser, 65)
+  set_laser_speed(ser, 105)
+  set_laser_box(ser, 0, 0, 512, 512)  # quick calibration
+  time.sleep(3)
+  set_laser_box(ser, 0, 10, 512, 12) # outline the area we are going to draw
+  time.sleep(3)
+  set_laser_position(ser, 10,0)
+  time.sleep(2)
+  start_laser_raster_mode(ser)
+  for y in range(10, 12, skip):
+    for x in range(0, 512, skip):
+      if not (x > 220+y and x<380+y):
+        raster_draw_pixel(ser, x, y, 0, 0.105)  # go line by line, it does not like angles with this mode
+        # maybe I should have it draw backwards alternating lines to save a trip back
+  stop_laser_raster_mode(ser)
+  set_laser_power(ser,1)
+  fan_3_sec(ser)
 
 
 # drawing various shades using raster api
-# set_laser_power(1) # just a visible laser, nothing really will cut
-# set_fan_speed(10)
-# set_motor_speed(65)
-# set_laser_speed(105)
-# set_laser_box(0,0,512,512)
-# time.sleep(2)
-# set_laser_position(0,0)
-# time.sleep(2)
-# start_laser_raster_mode()
-# for y in range(10,30):
-#   for x in range(0,300):
-#     grey = 0
-#     if x > 50: grey = 50
-#     if x > 100: grey = 100
-#     if x > 150: grey = 150
-#     if x > 200: grey = 200
-#     if x > 250: grey = 250
-#     raster_draw_pixel(x,y,grey)  # go line by line, it does not like angles with this mode
-#     time.sleep(0.05) # set to the same as the laser speed
-# stop_laser_raster_mode()
-# set_laser_power(1) # just a visible laser, nothing really will cut
-# set_fan_speed(0)
+def example_raster_draw_shades(ser, skip=1):
+  set_laser_power(ser, 1) # just a visible laser, nothing really will cut
+  set_fan_speed(ser, 10)
+  set_motor_speed(ser, 65)
+  set_laser_speed(ser, 105)
+  set_laser_box(ser, 0, 0, 512, 512)  # quick calibration
+  time.sleep(3)
+  set_laser_box(ser, 0, 10, 300, 30) # outline the area we are going to draw
+  time.sleep(3)
+  # lets draw the box
+  set_laser_power(ser, 9)
+  set_laser_box(ser, 0, 10, 300, 30) # outline the area we are going to draw
+  time.sleep(3)
+  set_laser_power(ser, 1)
+  set_laser_position(ser, 10,0)
+  time.sleep(2)
+  start_laser_raster_mode(ser)
+  for y in range(10, 30):
+    for x in range(0,512, skip):
+      grey = 0
+      if x > 50: grey = 50
+      if x > 100: grey = 100
+      if x > 150: grey = 150
+      if x > 200: grey = 200
+      if x > 250: grey = 250
+      raster_draw_pixel(ser, x, y, grey, 0.105)
+        # maybe I should have it draw backwards alternating lines to save a trip back
+  stop_laser_raster_mode(ser)
+  set_laser_power(ser,1)
+  fan_3_sec(ser)
 
 
+# Example to Vector Write the word Hi
+# if you blink, you let it move, then fire, so the results look a lot better, but more pixlie due to non-continuous beam
+def example_vector_hi(ser, blink=False, skip=1, delay=0.105):
+  move_speed_delay = delay # set to the same as the laser speed or longer for best results
+  move_speed_move_delay = 1 # move_speed_delay * 25
+  laser_strength = 8
+  set_fan_speed(ser, 10)
+  set_motor_speed(ser, 65)
+  set_laser_speed(ser, 105)
+  set_laser_power(ser, 1) # just a visible laser, nothing really will cut
+  set_laser_box(ser, 0, 0, 512, 512)  # quick calibration
+  time.sleep(3)
+  set_laser_box(ser, 25, 132, 148, 235) # outline the area we are going to draw
+  time.sleep(2)
+  # Draw H
+  set_laser_position(ser,64, 223)
+  time.sleep(move_speed_move_delay)
+  draw_line(ser, 64, 223, 84, 126, move_speed_delay, laser_strength, blink, skip)
+  set_laser_position(ser, 73, 170)
+  time.sleep(move_speed_move_delay)
+  draw_line(ser, 73, 170, 113, 176, move_speed_delay, laser_strength, blink, skip)
+  set_laser_position(ser, 125, 132)
+  time.sleep(move_speed_move_delay)
+  draw_line(ser, 25, 132, 100, 230, move_speed_delay, laser_strength, blink, skip)
+  # Draw i
+  set_laser_position(ser, 129, 235)
+  time.sleep(move_speed_move_delay)
+  draw_line(ser, 129, 235, 144, 182, move_speed_delay, laser_strength, blink, skip)
+  set_laser_position(ser, 148, 165)
+  time.sleep(move_speed_move_delay)
+  draw_line(ser, 148, 165, 150, 158, move_speed_delay, laser_strength, blink, skip)
+  set_laser_power(ser, 1)
+  fan_3_sec(ser)
 
 
+# draw an angle with vector positions with different skip
+# this can be replaced with the draw_line function, but kept as an example of manual positioning
+# this shows how inaccurate the cnc really is with angles \ and pathing
+# if you blink, you let it move, then fire, so the results look a lot better, but more pixlie due to non-continuous beam
+def example_vector_draw_angle(ser, skip=1, blink=False):
+  stop_laser_raster_mode(ser) # make sure not in raster mode
+  set_laser_power(ser, 1) # just a visible laser, nothing really will cut
+  set_fan_speed(ser, 10)
+  set_motor_speed(ser, 65)
+  set_laser_speed(ser, 105)
+  set_laser_box(ser, 0, 0, 512, 512) # quick calibration
+  time.sleep(2)
+  set_laser_position(ser, 0,0)
+  time.sleep(3)
+  set_fan_speed(ser, 10)
+  if not blink: 
+    set_laser_power(ser, 9)
+  else:
+    set_laser_power(ser, 1)
+  for x in range(0,513, skip):
+    set_laser_position(ser, x, x)
+    if blink: 
+      time.sleep(0.105) # set to the same as the laser speed or longer for best results
+      set_laser_power(ser, 9)
+      time.sleep(0.105) # set to the same as the laser speed or longer for best results
+      set_laser_power(ser, 0)
+    else:
+      time.sleep(0.105) # set to the same as the laser speed or longer for best results
+  set_laser_power(ser,1)
+  fan_3_sec(ser)
 
 
+# draw an horizontal with vector positions with different skip
+# this can be replaced with the draw_line function, but kept as an example of manual positioning
+def example_vector_draw_h_line(ser, skip=1):
+  stop_laser_raster_mode(ser) # make sure not in raster mode
+  set_laser_power(ser, 1) # just a visible laser, nothing really will cut
+  set_fan_speed(ser, 10)
+  set_motor_speed(ser, 65)
+  set_laser_speed(ser, 105)
+  set_laser_box(ser, 0, 0, 512, 512) # quick calibration
+  time.sleep(2)
+  set_laser_position(ser, 0, 10)
+  time.sleep(3)
+  set_fan_speed(ser, 10)
+  set_laser_power(ser, 9)
+  for x in range(0,513, skip):
+    set_laser_position(ser, x, 10)
+    time.sleep(0.105) # set to the same as the laser speed or longer for best results
+  set_laser_power(ser,1)
+  fan_3_sec(ser)
 
 
+# draw an vertical with vector positions with different skip
+# this can be replaced with the draw_line function, but kept as an example of manual positioning
+def example_vector_draw_v_line(ser, skip=1):
+  stop_laser_raster_mode(ser) # make sure not in raster mode
+  set_laser_power(ser, 1) # just a visible laser, nothing really will cut
+  set_fan_speed(ser, 10)
+  set_motor_speed(ser, 65)
+  set_laser_speed(ser, 105)
+  set_laser_box(ser, 0, 0, 512, 512) # quick calibration
+  time.sleep(2)
+  set_laser_position(ser, 10, 0)
+  time.sleep(3)
+  set_fan_speed(ser, 10)
+  set_laser_power(ser, 9)
+  for y in range(0,513, skip):
+    set_laser_position(ser, 10, y)
+    time.sleep(0.105) # set to the same as the laser speed or longer for best results
+  set_laser_power(ser,1)
+  fan_3_sec(ser)
 
 
-
-# draw with free mode
-# set_laser_position(0,0)
-# time.sleep(3)
-# set_laser_position(512,512)
-# time.sleep(3)
-
-# set_laser_box(0,0,200,212)
-# time.sleep(2)
-# set_laser_position(0,0)
-# time.sleep(2)
-# time.sleep(4) # set to the same as the laser speed
-# set_fan_speed(10)
-# set_laser_power(9) # just a visible laser, nothing really will cut
-
-# for x in range(0,513, 4):
-#   set_laser_position(x,x)
-#   time.sleep(0.2) # set to the same as the laser speed
-
-# set_laser_power(0) # just a visible laser, nothing really will cut
-# set_fan_speed(0)
-
-
-
-
-
-
-
-
-# Draw Hi, vector style
-# parse_init_resp(reboot_laser()) # sometimes things glitch and you have to reboot it, other times you have to unplug everything and it just works
-# set_laser_position(0,0)
-# time.sleep(3)
-# set_laser_position(512,512)
-# time.sleep(3)
-# set_fan_speed(10)
-# set_laser_power(1) # just a visible laser, nothing really will cut
-# set_laser_position(64,223)
-# time.sleep(1)
-# hi_speed = 0.06
-# draw_line(64,223,84,126,hi_speed)
-# set_laser_position(73,170)
-# time.sleep(hi_speed)
-# draw_line(73,170,113,176,hi_speed)
-# set_laser_position(125,132)
-# time.sleep(hi_speed)
-# draw_line(125,132,100,230,hi_speed)
-# set_laser_position(129,235)
-# time.sleep(hi_speed)
-# draw_line(129,235,144,182,hi_speed)
-# set_laser_position(148, 165)
-# time.sleep(hi_speed)
-# draw_line(148,165, 150, 158,hi_speed)
-# set_laser_power(0)
-# set_fan_speed(0)
-
-
-
-
-
-
-
+# Make the laser move around
 # below is a sample dance of the laser to show how to use some things
-# print "\nAre you ready for the Chinese Laser Dance?"
-# raw_input("Press Enter to start the dance...")
-# set_motor_speed(65)
-# set_laser_speed(15)
-# set_laser_power(1) # just a visible laser, nothing really will cut
-# time.sleep(0.1)
-# set_fan_speed(10)
-# time.sleep(0.1)
-# print "it's good to go 0,0 -> 512,512, 0,0 for calibration of motors before tasks, you can also draw boxes"
-# set_laser_position(0,0)
-# time.sleep(5)
-# set_laser_position(512,512)
-# time.sleep(5)
-# print "set_laser_power 1... pew"
-# set_laser_power(1)
-# time.sleep(1)
-# print "set_laser_position(0,0)"
-# set_laser_position(0,0)
-# time.sleep(5)
-# print "Top left to bottom right, angle"
-# for x in range(0,513):
-#   set_laser_position(x,x)
-#   time.sleep(0.01)
-# time.sleep(2)
-# print "set_fan_speed 1"
-# set_fan_speed(1)
-# time.sleep(0.1)
-# print "bottom left to top right, angle"
-# for x in range(0,513):
-#   set_laser_position(513-x,x)
-#   time.sleep(0.01)
-# time.sleep(2)
-# print "bottom left to top left, angle, switcheroo"
-# for x in range(0,513):
-#   if x > 256:
-#     set_laser_position(513-x,513-x)
-#   else:
-#     set_laser_position(x,513-x)
-#   time.sleep(0.01)
-# time.sleep(2)
-# set_laser_position(30,20)
-# time.sleep(5)
-# parse_init_resp(reboot_laser())
-# time.sleep(5)
-# print "set_fan_speed 5"
-# set_fan_speed(5)
-# time.sleep(0.1)
-# print "set_laser_box(100,100,150,150)"
-# set_laser_box(100,100,150,150)
-# time.sleep(2)
-# print "set_laser_box(0,0,150,150)"
-# set_laser_box(0,0,150,150)
-# time.sleep(2)
-# print "set_laser_box(10,100,50,50)"
-# set_laser_box(10,100,50,50)
-# time.sleep(2)
-# print "set_laser_box(10,10,20,20)... Machine Gun #1"
-# set_laser_box(10,10,20,20)
-# time.sleep(2)
-# print "set_laser_box(100,50,105,55)... Machine Gun #2"
-# set_laser_box(100,50,105,55)
-# time.sleep(2)
-# print "set_laser_box(0,0,512,0)... Fax Machine"
-# set_laser_box(0,0,512,0)
-# time.sleep(4)
-# print "set_laser_box(0,0,0,512)... Flatbed Scanner"
-# set_laser_box(0,0,0,512)
-# time.sleep(2)
-# print "set_laser_box(25,10,150,50)"
-# set_laser_box(25,10,150,50)
-# time.sleep(2)
-# set_fan_speed(10)
-# time.sleep(0.1)
-# set_laser_position(200,403)
-# time.sleep(2)
-# print "Rebooting laser, because why not"
-# parse_init_resp(reboot_laser())
-# time.sleep(2)
-# print "set_laser_position(512,220)"
-# print "set_laser_power 10... pew"
-# set_laser_power(10)
-# time.sleep(1)
-# print "set_laser_power 0"
-# set_laser_power(0)
-# time.sleep(1)
-# print "set_laser_power 10... {pew} pew"
-# set_laser_power(10)
-# time.sleep(1)
-# print "set_laser_power 0"
-# set_laser_power(0)
-# time.sleep(1)
-# print "set_laser_power 10... {pew pew} pew"
-# set_laser_power(10)
-# time.sleep(1)
-# print "set_laser_power 0"
-# set_laser_power(0)
-# time.sleep(1)
-# set_laser_position(512,220)
-# print "set_fan_speed 0"
-# set_fan_speed(0)
-# time.sleep(0.1)
+# parts can be replaced with the draw_line function, but kept as an example of manual positioning
+def example_chinese_laser_dance(ser):
+  print "\nAre you ready for the Chinese Laser Dance?"
+  raw_input("Press Enter to start the dance...")
+  set_motor_speed(ser, 65)
+  set_laser_speed(ser, 15)
+  set_laser_power(ser, 1) # just a visible laser, nothing really will cut
+  time.sleep(0.1)
+  set_fan_speed(ser, 10)
+  time.sleep(0.1)
+  print "it's good to go 0,0 -> 512,512, 0,0 for calibration of motors before tasks, you can also draw boxes"
+  set_laser_position(ser, 0,0)
+  time.sleep(3)
+  set_laser_position(ser, 512,512)
+  time.sleep(3)
+  print "set_laser_power 1... pew"
+  set_laser_power(ser, 1)
+  time.sleep(1)
+  print "set_laser_position(0,0)"
+  set_laser_position(ser, 0,0)
+  time.sleep(3)
+  print "Top left to bottom right, angle"
+  for x in range(0,513):
+    set_laser_position(ser, x,x)
+    time.sleep(0.01)
+  time.sleep(2)
+  set_fan_speed(ser, 1)
+  time.sleep(0.1)
+  set_laser_position(ser, 513,0)
+  time.sleep(3)
+  print "bottom left to top right, angle"
+  for x in range(0,513):
+    set_laser_position(ser, 513-x,x)
+    time.sleep(0.01)
+  time.sleep(2)
+  set_laser_position(ser, 0,513)
+  time.sleep(3)
+  print "bottom left to top left, angle, switcheroo"
+  for x in range(0,513):
+    if x > 256:
+      set_laser_position(ser, 513-x,513-x)
+    else:
+      set_laser_position(ser, x,513-x)
+    time.sleep(0.01)
+  time.sleep(2)
+  set_laser_position(ser, 30,20)
+  time.sleep(3)
+  parse_init_resp(laser_reboot(ser))
+  time.sleep(3)
+  set_fan_speed(ser, 5)
+  time.sleep(0.1)
+  set_laser_box(ser, 100,100,150,150)
+  time.sleep(2)
+  set_laser_box(ser, 0,0,150,150)
+  time.sleep(2)
+  set_laser_box(ser, 10,100,50,50)
+  time.sleep(2)
+  print "Machine Gun #1"
+  set_laser_box(ser, 10,10,20,20)
+  time.sleep(2)
+  print "Machine Gun #2"
+  set_laser_box(ser, 100,50,105,55)
+  time.sleep(2)
+  print "Fax Machine"
+  set_laser_box(ser, 0,0,512,0)
+  time.sleep(4)
+  print "Flatbed Scanner"
+  set_laser_box(ser, 0,0,0,512)
+  time.sleep(2)
+  set_laser_box(ser, 25,10,150,50)
+  time.sleep(2)
+  set_fan_speed(ser, 10)
+  time.sleep(0.1)
+  set_laser_position(ser, 200,403)
+  time.sleep(2)
+  print "Rebooting laser, because why not"
+  parse_init_resp(laser_reboot(ser))
+  time.sleep(2)
+  set_laser_power(ser, 0)
+  time.sleep(1)
+  print "pew"
+  set_laser_power(ser, 10)
+  time.sleep(1)
+  print "set_laser_power 0"
+  set_laser_power(ser, 0)
+  time.sleep(1)
+  print "{pew} pew"
+  set_laser_power(ser, 10)
+  time.sleep(1)
+  set_laser_power(ser, 0)
+  time.sleep(1)
+  print "{pew pew} pew"
+  set_laser_power(ser, 10)
+  time.sleep(1)
+  set_laser_power(ser, 0)
+  time.sleep(1)
+  set_laser_position(ser, 512,220)
+  print "set_fan_speed 0"
+  set_fan_speed(ser, 0)
+  time.sleep(0.1)
+  print '\nDone, now wasn\'t that dance fun?'
 
-# print '\nDone, now wasn\'t that dance fun?'
+
+
+
+
+
+
+
+def main(argv):
+  action = ''
+  serial_port = ''
+  ser = False
+  initial_calibrate = True
+
+  help_info = '''
+pyLaser
+------------------------
+Expected Syntax:
+  %s (-p <serial_port>) (-a <action>) (-nc)
+    -p  = serial port, if not provided, it will ask
+    -a  = action from action menu, if not provided, it will show menu and ask  * ignore options for now
+    -c = no initial calibration
+  ''' % os.path.basename(__file__)
+
+  try:
+    opts, args = getopt.getopt(argv,"hp:a:c",[])
+  except getopt.GetoptError:
+    print(help_info)
+    sys.exit(2)
+  for opt, arg in opts:
+    if opt == '-h':
+       print(help_info)
+       sys.exit()
+    elif opt in ("-c"):
+       initial_calibrate = False
+    elif opt in ("-a"):
+       action = arg
+    elif opt in ("-p"):
+       serial_port = arg
+    else:
+      print 'unrecognized option: ' + opt
+
+
+
+  if serial_port == '':
+    print("Please wait (getting avail serial ports)...")
+    avail_com_ports = get_avail_serial_ports()
+    if len(avail_com_ports) == 0:
+        print 'Fatal Error: No available serial ports detected.'
+        sys.exit(1)      
+    elif len(avail_com_ports) == 1:
+      print('Connecting to: ' + avail_com_ports[0])
+      ser = serial_connect(avail_com_ports[0])
+      if not ser:
+        print('Fatal Error: Unable to connect to the only available detected com port.')
+        sys.exit(1)
+    while not ser:
+      print("Available Com Ports (restart the app to get new list)")
+      print(avail_com_ports)
+      print("\nQ to quit.")
+      user_input = raw_input("\nWhat com port should we connect to? ")
+      if user_input.upper()=='Q':
+        sys.exit()
+      elif user_input in avail_com_ports:
+        ser = serial_connect(user_input)
+        if not ser:
+          print('Error: could not connect to selected com port...')
+  else:
+    ser = serial_connect(serial_port)
+    if not ser:
+      print('Fatal Error: Unable to connect to the provided com port: ' + serial_port)
+      sys.exit(1)
+
+
+  print("\nInit Laser...")
+  parse_init_resp(init_laser(ser))
+  
+  if initial_calibrate:
+    print("\nCalibrating Laser...")
+    laser_reset_calibrate(ser)
+
+  if action == '':
+    while True:
+      print(r'''
+        Action Menu:
+          1) Chinese Laser Dance
+          2) Vector Draw: Hi
+           21) Vector Draw: Hi (Blink)
+           22) Vector Draw: Hi (Blink, skip 2, delay 0.3)
+           23) Vector Draw: Hi (skip 2, delay 0.3)
+          3) Vector Draw: Horizontal Line \ (skip 3, fast)
+           31) Vector Draw: Horizontal Line \ (skip 1, slow)
+           32) Vector Draw: Horizontal Line \ (skip 2, med)
+          4) Vector Draw: Verticle Line \ (skip 3, fast)
+           41) Vector Draw: Verticle Line \ (skip 1, slow)
+           42) Vector Draw: Verticle Line \ (skip 2, med)
+          5) Vector Draw: Angle Line \ (skip 3, fast) * Very inaccurate
+           51) Vector Draw: Angle Line \ (skip 1, slow) * Very inaccurate
+           52) Vector Draw: Angle Line \ (skip 2, med) * Very inaccurate
+          6) Vector Draw: Angle Line \ (Blink, skip 3, fast) * More inaccurate
+           61) Vector Draw: Angle Line \ (Blink, skip 1, slow) * More inaccurate
+           62) Vector Draw: Angle Line \ (Blink, skip 2, med) * More inaccurate
+          7) Raster Draw: Line with break
+          8) Raster Draw: Draw Shade Boxes
+
+        Lower Level Functions:
+          I) Init Laser
+          B) Reboot Laser
+          C) Calibrate/Reboot Laser
+          P) Laser Power 0
+            P#) Laser Power 0-10
+          L) Laser Location (256, 256)     L5) Laser Location (0, 256)    L10) Laser Location (128, 128)
+            L1) Laser Location (0, 0)      L6) Laser Location (256, 256)  L11) Laser Location (128, 384)
+            L2) Laser Location (0, 512)    L7) Laser Location (256, 512)  L12) Laser Location (384, 384)
+            L3) Laser Location (512, 512)  L8) Laser Location (512, 256)  L13) Laser Location (384, 128)
+            L4) Laser Location (512, 0)    L9) Laser Location (256, 0)      
+          R) Read Serial
+          Q) Quit
+        ''')
+
+      user_input = raw_input("\nWhat action would you like to perform? ").upper()
+
+      if user_input=='1':
+        example_chinese_laser_dance(ser)
+      elif user_input=='2':
+        example_vector_hi(ser)
+      elif user_input=='21':
+        example_vector_hi(ser, True)
+      elif user_input=='22':
+        example_vector_hi(ser, True, 2, 0.3)
+      elif user_input=='23':
+        example_vector_hi(ser, False, 2, 0.3)
+      elif user_input=='3':
+        example_vector_draw_h_line(ser, 3)
+      elif user_input=='31':
+        example_vector_draw_h_line(ser, 1)
+      elif user_input=='32':
+        example_vector_draw_h_line(ser, 2)
+      elif user_input=='4':
+        example_vector_draw_v_line(ser, 3)
+      elif user_input=='41':
+        example_vector_draw_v_line(ser, 1)
+      elif user_input=='42':
+        example_vector_draw_v_line(ser, 2)
+      elif user_input=='5':
+        example_vector_draw_angle(ser, 3)
+      elif user_input=='51':
+        example_vector_draw_angle(ser, 1)
+      elif user_input=='52':
+        example_vector_draw_angle(ser, 2)
+      elif user_input=='6':
+        example_vector_draw_angle(ser, 3, True)
+      elif user_input=='61':
+        example_vector_draw_angle(ser, 1, True)
+      elif user_input=='62':
+        example_vector_draw_angle(ser, 2, True)
+      elif user_input=='7':
+        example_raster_draw_line_break(ser)
+      elif user_input=='8':
+        example_raster_draw_shades(ser, 2)
+      elif user_input=='I':
+        parse_init_resp( init_laser(ser) )
+      elif user_input=='C':
+        laser_reset_calibrate(ser)
+      elif user_input=='B':
+        parse_init_resp( laser_reboot(ser) )
+      elif user_input=='P':
+        set_laser_power(ser, 1)
+      elif user_input=='P0':
+        set_laser_power(ser, 0)
+      elif user_input=='P1':
+        set_laser_power(ser, 1)
+      elif user_input=='P2':
+        set_laser_power(ser, 2)
+      elif user_input=='P3':
+        set_laser_power(ser, 3)
+      elif user_input=='P4':
+        set_laser_power(ser, 4)
+      elif user_input=='P5':
+        set_laser_power(ser, 5)
+      elif user_input=='P6':
+        set_laser_power(ser, 6)
+      elif user_input=='P7':
+        set_laser_power(ser, 7)
+      elif user_input=='P8':
+        set_laser_power(ser, 8)
+      elif user_input=='P9':
+        set_laser_power(ser, 9)
+      elif user_input=='P10':
+        set_laser_power(ser, 10)
+      elif user_input=='L':
+        set_laser_position(ser, 256, 256)
+      elif user_input=='L1':
+        set_laser_position(ser, 0, 0)
+      elif user_input=='L2':
+        set_laser_position(ser, 0, 512)
+      elif user_input=='L3':
+        set_laser_position(ser, 512, 512)
+      elif user_input=='L4':
+        set_laser_position(ser, 512, 0)
+      elif user_input=='L5':
+        set_laser_position(ser, 0, 256)
+      elif user_input=='L6':
+        set_laser_position(ser, 256, 256)
+      elif user_input=='L7':
+        set_laser_position(ser, 256, 512)
+      elif user_input=='L8':
+        set_laser_position(ser, 512, 256)
+      elif user_input=='L9':
+        set_laser_position(ser, 256, 0)
+      elif user_input=='L10':
+        set_laser_position(ser, 128, 128)
+      elif user_input=='L11':
+        set_laser_position(ser, 128, 384)
+      elif user_input=='L12':
+        set_laser_position(ser, 384, 384)
+      elif user_input=='L13':
+        set_laser_position(ser, 384, 128)
+      elif user_input=='R':
+        print( "Payload=" + serial_read(ser) )
+      elif user_input=='Q':
+        sys.exit()
+      else:
+        print('Error: Invalid input received\n')
+
+
+if __name__ == "__main__":
+   main(sys.argv[1:])
+
