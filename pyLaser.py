@@ -562,7 +562,7 @@ def example_raster_draw_shades(ser, skip=1):
   set_laser_position(ser, 10,0)
   time.sleep(2)
   start_laser_raster_mode(ser)
-  for y in range(10, 30, 8):
+  for y in range(10, 30, 4):
     for x in range(0,350, skip):
       grey = 10
       if x > 25: grey = 50
