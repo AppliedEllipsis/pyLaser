@@ -77,16 +77,30 @@ laser_buff = laser_buff_min
 
 
 
-def config_open(ser):
+def config_open(ser): # not sure what these really do, but I'm going to have done before other settings
+  # most of these cause issues so disabled for now
   if debug: print "\tDBG: config_open"
-  global laser_buff, laser_buff_max, laser_buff_min
-  laser_buff = laser_buff_min +1
-  serial_send(ser, ("15 00 00 00 00 00 FF"))
-  serial_send(ser, ("1B 00 00 00 00 00 FF")) # send box
-  serial_send(ser, ("1B 04 04    32 01 FF")) # send box
-  serial_send(ser, ("36 00 00 00 00 00 FF"))
+  # serial_send(ser, ("18 00 00 00 00 FF"))
+  # time.sleep(0.1)
+  # serial_send(ser, ("15 00 00 00 00 FF")) # 15 01 sets raster mode, maybe this forces off, maybe should use in other things
+  # time.sleep(0.1)
+  # serial_send(ser, ("1B 00 00 00 00 FF")) # send box partial
+  # time.sleep(0.1)
+  # serial_send(ser, ("1B 04 32 04 32 01 FF")) # send box 432,432 with 1?
+  # time.sleep(0.1)
+  serial_send(ser, ("36 00 00 00 00 00 FF")) # idk?
   # read 3E 36 28 01 01 00 00 00 00 FF FF
-  time.sleep(.2)
+  time.sleep(0.2)
+  return serial_read(ser)
+
+
+def config_close(ser): # not sure what these really do, but I'm going to have done after other settings
+  # most of these cause issues so disabled for now
+  if debug: print "\tDBG: config_close"
+  # serial_send(ser, ("18 00 00 00 00 FF")) # sometimes it sends a partial one
+  # time.sleep(0.2)
+  # serial_send(ser, ("18 00 00 00 00 00 FF"))
+  # time.sleep(0.2)
   return serial_read(ser)
 
 def start_laser_raster_mode(ser):
@@ -200,14 +214,14 @@ def set_motor_speed(ser, speed): # range 0-100 recommended 60-75
   # set_laser_position(0,0)
 
 
-def set_motor_x_reverse(ser, value): # range 0-1  # checkbox from settings
-  if debug: print "\tDBG: set_motor_x_reverse: " + str(speed)
+def set_motor_x_reverse(ser, value): # range 0-1 0=off,1=on  # checkbox from settings
+  if debug: print "\tDBG: set_motor_x_reverse: " + str(value)
   serial_send(ser, ("38 01" + format(value,"02x") + "00 00 00 00 FF"))
   time.sleep(.2)
 
 
-def set_motor_y_reverse(ser, value): # range 0-1  # checkbox from settings
-  if debug: print "\tDBG: set_motor_y_reverse: " + str(speed)
+def set_motor_y_reverse(ser, value): # range 0-1 0=off,1=on # checkbox from settings
+  if debug: print "\tDBG: set_motor_y_reverse: " + str(value)
   serial_send(ser, ("39 01" + format(value,"02x") + "00 00 00 00 FF"))
   time.sleep(.2)
 
@@ -395,21 +409,39 @@ def fan_3_sec(ser):
 def laser_reset_calibrate(ser):
   # sometimes you just have to unplug everything to fix issues
   stop_laser_raster_mode(ser) # make sure not in raster mode
-  set_motor_speed(ser,65)
-  set_laser_speed(ser,105)
-  set_fan_speed(ser,10)
-  set_laser_power(ser,1)
+  config_open(ser)
+  config_run(True)
+  set_motor_speed(ser, 65)
+  set_motor_x_reverse(ser, 0)
+  set_motor_y_reverse(ser, 0)
+  config_close(ser)
+  # time.sleep(1)
+  config_run(ser,False)
+  # time.sleep(1)
+  set_laser_speed(ser, 105)
+  set_fan_speed(ser, 10)
+  set_laser_power(ser, 1)
   parse_init_resp(laser_reboot(ser))
   time.sleep(3)
-  set_motor_speed(ser,65)
-  set_laser_speed(ser,105)
-  set_fan_speed(ser,0)
-  set_laser_power(ser,1)
-  set_laser_position(ser,0,0)
+  config_open(ser)
+  config_run(ser,True)
+  # time.sleep(1)
+  set_motor_speed(ser, 65)
+  set_motor_x_reverse(ser, 0)
+  set_motor_y_reverse(ser, 0)
+  config_close(ser)
+  # time.sleep(1)
+  config_run(ser,False)
+  # serial_read(ser)
+  # time.sleep(1)
+  set_laser_speed(ser, 105)
+  set_fan_speed(ser, 0)
+  set_laser_power(ser, 1)
+  set_laser_position(ser, 0, 0)
   time.sleep(3)
-  set_laser_position(ser,512,512)
+  set_laser_position(ser, 512, 512)
   time.sleep(3)
-  set_laser_position(ser,0,0)
+  set_laser_position(ser, 0, 0)
   time.sleep(3)
 
 
@@ -474,7 +506,7 @@ def example_raster_draw_shades(ser, skip=1):
 
 
 # Example to Vector Write the word Hi
-# if you blink, you let it move, then fire, so the results look a lot better, but more pixlie due to non-continuous beam
+# if you blink, you let it move, then fire, so the results look a lot better, but more pixlie due to non-continuo s beam
 def example_vector_hi(ser, blink=False, skip=1, delay=0.105):
   move_speed_delay = delay # set to the same as the laser speed or longer for best results
   move_speed_move_delay = 1 # move_speed_delay * 25
@@ -496,7 +528,7 @@ def example_vector_hi(ser, blink=False, skip=1, delay=0.105):
   draw_line(ser, 73, 170, 113, 176, move_speed_delay, laser_strength, blink, skip)
   set_laser_position(ser, 125, 132)
   time.sleep(move_speed_move_delay)
-  draw_line(ser, 25, 132, 100, 230, move_speed_delay, laser_strength, blink, skip)
+  draw_line(ser, 125, 132, 100, 230, move_speed_delay, laser_strength, blink, skip)
   # Draw i
   set_laser_position(ser, 129, 235)
   time.sleep(move_speed_move_delay)
@@ -771,10 +803,10 @@ Expected Syntax:
       print(r'''
         Action Menu:
           1) Chinese Laser Dance
-          2) Vector Draw: Hi
-           21) Vector Draw: Hi (Blink)
-           22) Vector Draw: Hi (Blink, skip 2, delay 0.3)
-           23) Vector Draw: Hi (skip 2, delay 0.3)
+          2) Vector Draw: Hi (delay 0.1)
+           21) Vector Draw: Hi (Blink, delay 0.1)
+           22) Vector Draw: Hi (Blink, skip 3, delay 0.1)
+           23) Vector Draw: Hi (skip 3, delay 0.1)
           3) Vector Draw: Horizontal Line \ (skip 3, fast)
            31) Vector Draw: Horizontal Line \ (skip 1, slow)
            32) Vector Draw: Horizontal Line \ (skip 2, med)
@@ -810,13 +842,13 @@ Expected Syntax:
       if user_input=='1':
         example_chinese_laser_dance(ser)
       elif user_input=='2':
-        example_vector_hi(ser)
+        example_vector_hi(ser, False, 1, 0.1)
       elif user_input=='21':
-        example_vector_hi(ser, True)
+        example_vector_hi(ser, True, 1, 0.1)
       elif user_input=='22':
-        example_vector_hi(ser, True, 2, 0.3)
+        example_vector_hi(ser, True, 3, 0.105)
       elif user_input=='23':
-        example_vector_hi(ser, False, 2, 0.3)
+        example_vector_hi(ser, False, 3, 0.105)
       elif user_input=='3':
         example_vector_draw_h_line(ser, 3)
       elif user_input=='31':
