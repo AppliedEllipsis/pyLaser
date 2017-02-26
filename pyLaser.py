@@ -335,16 +335,24 @@ def get_avail_serial_ports():
 def draw_line(ser, x1, y1, x2, y2, sleep, power=8, blink=False, skip=1):
   # add variable power levels
   if debug: print "\tDBG: draw_line"
-  line_points = get_line((x1,y1), (x2,y2), skip)
+  line_points = get_line((x1,y1), (x2,y2))
   if not blink: 
     set_laser_power(ser, 9)  # higher values seem to cause problems
   else:
     set_laser_power(ser, 1)
+
+  skip_list = range(1, skip)
+  skip_num = 1
   for xy in line_points:
+    skip_num = (skip_num+1)%skip
+    if skip_num != 1 and (xy[0] != x2 and xy[1] != y2):
+      if skip_num in skip_list:
+        if debug: print( "\t\tskipping due to skip_num not being 1 (" + str(skip_num) + ") while skipping " + str(skip) + " (" + str(xy[0]) + ", " + str(xy[1]) + ")" )
+        continue
     # print str(xy[0]) + ', ' + str(xy[1])
     set_laser_position(ser, xy[0], xy[1])
     if blink: 
-      time.sleep(0.105) # set to the same as the laser speed or longer for best results
+      time.sleep(0.05) # set to the same as the laser speed or longer for best results
       set_laser_power(ser, 9)
       time.sleep(0.105) # set to the same as the laser speed or longer for best results
       set_laser_power(ser, 0)
@@ -355,7 +363,7 @@ def draw_line(ser, x1, y1, x2, y2, sleep, power=8, blink=False, skip=1):
 
 
 
-def get_line(start, end, skip=1): # Note skip can cause missing lines
+def get_line(start, end):
     if debug: print "\tDBG: get_line: " + str(start) + str(end)
     # Bresenham's Line Algorithm
     # Original Source: http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm#Python
@@ -386,17 +394,17 @@ def get_line(start, end, skip=1): # Note skip can cause missing lines
     # Iterate over bounding box generating points between start and end
     y = y1
     points = []
-    for x in range(x1, x2 + 1, skip):
+    for x in range(x1, x2 + 1):
         coord = (y, x) if is_steep else (x, y)
         points.append(coord)
         error -= abs(dy)
         if error < 0:
             y += ystep
             error += dx
- 
     # Reverse the list if the coordinates were swapped
     if swapped:
         points.reverse()
+
     return points
 
 
@@ -517,7 +525,7 @@ def example_vector_hi(ser, blink=False, skip=1, delay=0.105):
   set_laser_power(ser, 1) # just a visible laser, nothing really will cut
   set_laser_box(ser, 0, 0, 512, 512)  # quick calibration
   time.sleep(3)
-  set_laser_box(ser, 25, 132, 148, 235) # outline the area we are going to draw
+  set_laser_box(ser, 64, 132, 148, 235) # outline the area we are going to draw
   time.sleep(2)
   # Draw H
   set_laser_position(ser,64, 223)
@@ -803,10 +811,10 @@ Expected Syntax:
       print(r'''
         Action Menu:
           1) Chinese Laser Dance
-          2) Vector Draw: Hi (delay 0.1)
-           21) Vector Draw: Hi (Blink, delay 0.1)
-           22) Vector Draw: Hi (Blink, skip 3, delay 0.1)
-           23) Vector Draw: Hi (skip 3, delay 0.1)
+          2) Vector Draw: Hi (delay 0.2)
+           21) Vector Draw: Hi (Blink, delay 0.2)
+           22) Vector Draw: Hi (Blink, skip 5, delay 0.2)
+           23) Vector Draw: Hi (skip 5, delay 0.2)
           3) Vector Draw: Horizontal Line \ (skip 3, fast)
            31) Vector Draw: Horizontal Line \ (skip 1, slow)
            32) Vector Draw: Horizontal Line \ (skip 2, med)
@@ -842,13 +850,13 @@ Expected Syntax:
       if user_input=='1':
         example_chinese_laser_dance(ser)
       elif user_input=='2':
-        example_vector_hi(ser, False, 1, 0.1)
+        example_vector_hi(ser, False, 1, 0.2)
       elif user_input=='21':
-        example_vector_hi(ser, True, 1, 0.1)
+        example_vector_hi(ser, True, 1, 0.2)
       elif user_input=='22':
-        example_vector_hi(ser, True, 3, 0.105)
+        example_vector_hi(ser, True, 5, 0.2)
       elif user_input=='23':
-        example_vector_hi(ser, False, 3, 0.105)
+        example_vector_hi(ser, False, 5, 0.2)
       elif user_input=='3':
         example_vector_draw_h_line(ser, 3)
       elif user_input=='31':
