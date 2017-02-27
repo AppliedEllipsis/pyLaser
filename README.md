@@ -30,9 +30,13 @@ I used a freeware Serial Port Debugger called [SUDT AccessPort](http://www.sudt.
 * See the results of a sample image (Nuke Cola and Fallout Boy from Fallout)
 
 ![Image of greyscale result... Nuke Cola and Fallout Boy from Fallout](https://github.com/AppliedEllipsis/pyLaser/raw/master/test-nukecola_results.png)
+
 Tweaked the source image and tried again... Greyscale is not super impressive.
+
 ![Tweaked Image of greyscale result... Nuke Cola and Fallout Boy from Fallout](https://github.com/AppliedEllipsis/pyLaser/raw/master/test-nukecola3_results.png)
+
 Some materials show grey better than others. It also depends on laser focus.  The test cardboard provided seems to work the best.
+
 ![Gradient of source and laser](https://github.com/AppliedEllipsis/pyLaser/raw/master/test-gradient2-results.png)
 
 #####Notice
