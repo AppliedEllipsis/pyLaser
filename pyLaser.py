@@ -605,7 +605,7 @@ def example_raster_draw_shades(ser, skip=1):
   fan_3_sec(ser)
 
 
-def example_raster_draw_grey_picture(ser, image_path):
+def example_raster_draw_grey_picture(ser, image_path, speed_ms=125):
   # image conversions from http://stackoverflow.com/questions/1109422/getting-list-of-pixel-values-from-pil
   # and http://stackoverflow.com/questions/32361908/python-gray-scale-formula-with-pil
   if image_path == '':
@@ -621,7 +621,7 @@ def example_raster_draw_grey_picture(ser, image_path):
   set_laser_power(ser, 1) # just a visible laser, nothing really will cut
   set_fan_speed(ser, 10)
   set_motor_speed(ser, 65)
-  speed_ms = 125
+  # speed_ms = 125
   speed_s = speed_ms/1000.0
   set_laser_speed(ser, speed_ms)
 
@@ -1102,7 +1102,8 @@ Expected Syntax:
            62) Vector Draw: Angle Line \ (Blink, skip 2, med) * More inaccurate
           7) Raster Draw: Line with break         9) Raster Draw: Angle Line \       9B) Raster Draw: Vertical Line
           8) Raster Draw: Draw Shade Boxes        9A) Raster Draw: Horizontal Line   9C) Raster Draw: Vector Hi (skip 2)
-          8B) Raster Draw: Grey Image #1 (hi)     8C) Raster Draw: Grey Image #2 (gradients) 8D) Raster Draw: test-nukecola.png
+          8B) Raster Draw: Grey Image #1 (hi)     8C) Raster Draw: Grey Image #2 (gradients) 8D) Raster Draw: test-nukecola3.png
+          8E) Raster Draw: Grey test-gradient.png
           * reset seems to be needed after some vector actions
         Lower Level Functions:
           I) Init Laser
@@ -1164,7 +1165,9 @@ Expected Syntax:
       elif user_input=='8C':
         example_raster_draw_grey_picture(ser, "test2.png")
       elif user_input=='8D':
-        example_raster_draw_grey_picture(ser, "test-nukecola.png")
+        example_raster_draw_grey_picture(ser, "test-nukecola3.png")
+      elif user_input=='8E':
+        example_raster_draw_grey_picture(ser, "test-gradient2.png", 50)
       elif user_input=='9':
         example_raster_draw_angle(ser, 2)
       elif user_input=='9A':
