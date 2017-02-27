@@ -152,7 +152,8 @@ def stop_laser_raster_grey_mode(ser):
   # serial_send(ser, "15 00 00 00 00 00 FF")
   time.sleep(.2)
 
-def raster_draw_grey_pixel(ser,x,y,grey=0,delay=0.2): # X and Y range: 0-512, grey range 0-254 [0=darkest, 254=lightest besides not firing.] 
+def raster_draw_grey_pixel(ser,x,y,grey=0,delay=0.2): # X and Y range: 0-512, grey range 0-254 [0=lightest, 254=darkest besides not firing.] # 255 is actually valid
+  # be sure to start and stop raster mode prior and post calling this
   # I find if using grey values, to skip 2 pixels horizontal or it won't show up
   # Actually, I don't think grey works on this machine, even using stock software, sample images are not grey when done in grey mode
   if debug: print "\tDBG: raster_draw_pixel: " + str(x) + "," + str(y) + " / " + str(grey) 
@@ -173,7 +174,8 @@ def raster_draw_grey_pixel(ser,x,y,grey=0,delay=0.2): # X and Y range: 0-512, gr
   # raw_input("Press Enter to continue...")
 
 
-def raster_draw_pixel(ser,x,y,grey=0,delay=0.2): # X and Y range: 0-512, grey range 0-254 [0=darkest, 254=lightest besides not firing.] 
+def raster_draw_pixel(ser,x,y,grey=0,delay=0.2): # X and Y range: 0-512, don't use grey 
+  # be sure to start and stop raster mode prior and post calling this
   # I find if using grey values, to skip 2 pixels horizontal or it won't show up
   # Actually, I don't think grey works on this machine, even using stock software, sample images are not grey when done in grey mode
   if debug: print "\tDBG: raster_draw_pixel: " + str(x) + "," + str(y) + " / " + str(grey) 
