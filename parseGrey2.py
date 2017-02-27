@@ -4,11 +4,11 @@ import os, sys, getopt, re
 
 
 module_info = {
-'NAME': "Parse AccessPort Com Save",
+'NAME': "Process Grey Raster data from parsed AccessPort Com Save",
 'ORIGINAL_ARTHOR': "Applied Ellippsis", # leave this
 'ARTHOR': "Applied Ellipsis", # change this to you
 'DESCRIPTION': '''
-Tool to convert the output of AccessPort to something more usable.
+Tool to take the parsed AccessPort data and show coordinates and grey values as integers for easier analysis.
 ''',
 'REPO_URL': 'https://github.com/AppliedEllipsis/pyLaser',
 'VERSION': "0.1a",
