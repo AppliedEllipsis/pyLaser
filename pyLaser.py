@@ -1163,13 +1163,13 @@ Expected Syntax:
       elif user_input=='8':
         example_raster_draw_shades(ser, 1)
       elif user_input=='8B':
-        example_raster_draw_grey_picture(ser, "test.png")
+        example_raster_draw_grey_picture(ser, "images/test.png")
       elif user_input=='8C':
-        example_raster_draw_grey_picture(ser, "test2.png")
+        example_raster_draw_grey_picture(ser, "images/test2.png")
       elif user_input=='8D':
-        example_raster_draw_grey_picture(ser, "test-nukecola3.png")
+        example_raster_draw_grey_picture(ser, "images/test-nukecola3.png")
       elif user_input=='8E':
-        example_raster_draw_grey_picture(ser, "test-gradient2.png", 50)
+        example_raster_draw_grey_picture(ser, "images/test-gradient2.png", 50)
       elif user_input=='9':
         example_raster_draw_angle(ser, 2)
       elif user_input=='9A':
