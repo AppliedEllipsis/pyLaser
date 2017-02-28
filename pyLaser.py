@@ -192,7 +192,7 @@ def raster_draw_pixel(ser,x,y,grey=0,delay=0.2): # X and Y range: 0-512, don't u
   cmd = (format(laser_buff,"02x") + pos_x + pos_y +  format(grey,"02x") + "ff")
   # print "(" + format(x,"03") + "," + format(y,"03") + ") " + '-'.join(a+b for a,b in zip(cmd[::2], cmd[1::2]))
   serial_send(ser, cmd)
-  time.sleep(delay)
+  time.sleep(delay)  # I'm not sure the delay needs to be here as long as the buffer is used within the delay time.  Going to try to mess with this a bit for smoother drawing.
   # raw_input("Press Enter to continue...")
 
 
