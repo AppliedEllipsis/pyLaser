@@ -56,3 +56,9 @@ Leather shows some good contrast at darker levels.  This was done with 60ms spee
 #####Notice
 * I thought I screwed up my device when playing with the raster images, it was just I sent some cmds that changed speed to 0 and write speed to 99+
  * If you experience the device not moving or responding after resetting/calibrating and power cycling it, send new motor speed and write speed cmds to it to fix it.
+
+
+#####Notice
+* The Nuke Cola Fallout Boy image came from the Internet is only used as a sample image to test against.  
+* I have no affiluation with the creator of the image or the Fallout game/concept/etc.
+* This does not represent their ideas, concepts, etc... I just picked it randomly as a sample image.
