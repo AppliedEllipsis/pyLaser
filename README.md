@@ -65,4 +65,5 @@ Leather shows some good contrast at darker levels.  This was done with 60ms spee
 
 
 The leather greyscale looks better from a distance.  Ignore all the other sample etchings, I was using this material to find an optimial cutting speed or contrast of the source image.
+Actually don't ignore the sample etchings... look at them to see test results, even though you don't know the timing.
 ![Image of greyscale result on Leater at 20ms... Nuke Cola and Fallout Boy from Fallout from a distance](images/output_fallout_distance.jpg)
