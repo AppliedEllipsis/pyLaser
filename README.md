@@ -45,10 +45,6 @@ Some materials show grey better than others. It also depends on laser focus.  Th
 
 ![Gradient of source and laser](images/test-gradient2-results.png)
 
-Leather shows some good contrast at darker levels.  This was done with 40ms speed.
-
-![Gradient of source and laser on leather 40ms](images/gradient_2px_256_result.png)
-
 Leather shows some good contrast at darker levels.  This was done with 60ms speed.
 
 ![Gradient of source and laser on leather 60ms](images/gradient_2px_256_result60ms.png)
