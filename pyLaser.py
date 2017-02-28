@@ -1105,7 +1105,7 @@ Expected Syntax:
           7) Raster Draw: Line with break         9) Raster Draw: Angle Line \       9B) Raster Draw: Vertical Line
           8) Raster Draw: Draw Shade Boxes        9A) Raster Draw: Horizontal Line   9C) Raster Draw: Vector Hi (skip 2)
           8B) Raster Draw: Grey Image #1 (hi)     8C) Raster Draw: Grey Image #2 (gradients) 8D) Raster Draw: test-nukecola3.png
-          8E) Raster Draw: Grey test-gradient.png
+          8E) Raster Draw: Grey gradient_2px_256.png       8F) test-nukecola.png
           * reset seems to be needed after some vector actions
         Lower Level Functions:
           I) Init Laser
@@ -1169,7 +1169,9 @@ Expected Syntax:
       elif user_input=='8D':
         example_raster_draw_grey_picture(ser, "images/test-nukecola3.png")
       elif user_input=='8E':
-        example_raster_draw_grey_picture(ser, "images/test-gradient2.png", 50)
+        example_raster_draw_grey_picture(ser, "images/gradient_2px_256.png", 60)
+      elif user_input=='8F':
+        example_raster_draw_grey_picture(ser, "images/test-nukecola.png", 20)
       elif user_input=='9':
         example_raster_draw_angle(ser, 2)
       elif user_input=='9A':

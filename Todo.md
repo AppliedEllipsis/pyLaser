@@ -10,6 +10,7 @@
  * Offline Carving
 * Vector/G-Code Pathing - Basic Vector Hi test added
  * Optimized Pathing
+* Add percentage done, time run, and expected time remaining
 * Input sanatization
 * Add power off function
 * Boxing of input data
@@ -25,3 +26,4 @@
  * Python 2/3 compatiability, written on python 2.7
 * Sample Data
 * Image manipulation
+ * Positioning image, with box, top left, right, etc

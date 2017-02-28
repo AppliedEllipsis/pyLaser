@@ -29,15 +29,29 @@ I used a freeware Serial Port Debugger called [SUDT AccessPort](http://www.sudt.
 * I finally got greyscale to work
 * See the results of a sample image (Nuke Cola and Fallout Boy from Fallout)
 
-![Image of greyscale result... Nuke Cola and Fallout Boy from Fallout](https://github.com/AppliedEllipsis/pyLaser/raw/master/images/test-nukecola_results.png)
 
-Tweaked the source image and tried again... Greyscale is not super impressive.
+Leather shows some good contrast at darker levels.  This was done with 20ms speed.
+![Image of greyscale result on Leater at 20ms... Nuke Cola and Fallout Boy from Fallout](https://github.com/AppliedEllipsis/pyLaser/raw/master/images/test-nukecola_leather_20ms_results.png)
 
-![Tweaked Image of greyscale result... Nuke Cola and Fallout Boy from Fallout](https://github.com/AppliedEllipsis/pyLaser/raw/master/images/test-nukecola3_results.png)
+Below is on cardboard. 60ms
+
+![Image of greyscale result on cardboard... Nuke Cola and Fallout Boy from Fallout](https://github.com/AppliedEllipsis/pyLaser/raw/master/images/test-nukecola_results.png)
+
+Tweaked the source image and tried again... Greyscale is not super impressive on this cardboard material. 60ms
+
+![Tweaked Image of greyscale result on cardboard... Nuke Cola and Fallout Boy from Fallout](https://github.com/AppliedEllipsis/pyLaser/raw/master/images/test-nukecola3_results.png)
 
 Some materials show grey better than others. It also depends on laser focus.  The test cardboard provided seems to work the best.
 
 ![Gradient of source and laser](https://github.com/AppliedEllipsis/pyLaser/raw/master/images/test-gradient2-results.png)
+
+Leather shows some good contrast at darker levels.  This was done with 40ms speed.
+
+![Gradient of source and laser on leather 40ms](https://github.com/AppliedEllipsis/pyLaser/raw/master/images/gradient_2px_256_result.png)
+
+Leather shows some good contrast at darker levels.  This was done with 60ms speed.
+
+![Gradient of source and laser on leather 60ms](gradient_2px_256_result60ms.png)
 
 #####Notice
 * I thought I screwed up my device when playing with the raster images, it was just I sent some cmds that changed speed to 0 and write speed to 99+
