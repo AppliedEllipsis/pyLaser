@@ -165,8 +165,8 @@ def raster_draw_grey_pixel(ser,x,y,grey=0,delay=0.2): # X and Y range: 0-512, gr
 
   # note will not always take direct path if large gaps, keep it small if doing vector with laser on
   # time.sleep(0.01) is recommended after for smooth movement
-  pos_x = format(x/100,"02x") + format(x%100,"02x")
-  pos_y = format(y/100,"02x") + format(y%100,"02x")
+  pos_x = format(x/100,"02x") + format(x%100,"02x")  # Coordinates are broken up as 2 hex pairs.  The first is a 100 multiplier, the second is a value 0-99 added to it. ex 02 01 would be 201
+  pos_y = format(y/100,"02x") + format(y%100,"02x") # Coordinates are broken up as 2 hex pairs.  The first is a 100 multiplier, the second is a value 0-99 added to it. ex 02 01 would be 201
   cmd = (format(laser_grey_buff,"02x") + pos_x + pos_y +  format(grey,"02x") + "ff")
   # print "(" + format(x,"03") + "," + format(y,"03") + ") " + '-'.join(a+b for a,b in zip(cmd[::2], cmd[1::2]))
   serial_send(ser, cmd)
@@ -187,8 +187,8 @@ def raster_draw_pixel(ser,x,y,grey=0,delay=0.2): # X and Y range: 0-512, don't u
 
   # note will not always take direct path if large gaps, keep it small if doing vector with laser on
   # time.sleep(0.01) is recommended after for smooth movement
-  pos_x = format(x/100,"02x") + format(x%100,"02x")
-  pos_y = format(y/100,"02x") + format(y%100,"02x")
+  pos_x = format(x/100,"02x") + format(x%100,"02x") # Coordinates are broken up as 2 hex pairs.  The first is a 100 multiplier, the second is a value 0-99 added to it. ex 02 01 would be 201
+  pos_y = format(y/100,"02x") + format(y%100,"02x") # Coordinates are broken up as 2 hex pairs.  The first is a 100 multiplier, the second is a value 0-99 added to it. ex 02 01 would be 201
   cmd = (format(laser_buff,"02x") + pos_x + pos_y +  format(grey,"02x") + "ff")
   # print "(" + format(x,"03") + "," + format(y,"03") + ") " + '-'.join(a+b for a,b in zip(cmd[::2], cmd[1::2]))
   serial_send(ser, cmd)
@@ -220,10 +220,10 @@ def init_laser(ser): # seems optional but returns some nice to have info
 
 def set_laser_box(ser, x1, y1, x2, y2): # X and Y range: 0-512
   if debug: print "\tDBG: set_laser_box: (" + str(x1) + "," + str(y1) + ") - (" + str(x2) + "," + str(y2) + ")"
-  pos_x1 = format(x1/100,"02x") + format(x1%100,"02x")
-  pos_y1 = format(y1/100,"02x") + format(y1%100,"02x")
-  pos_x2 = format(x2/100,"02x") + format(x2%100,"02x")
-  pos_y2 = format(y2/100,"02x") + format(y2%100,"02x")
+  pos_x1 = format(x1/100,"02x") + format(x1%100,"02x") # Coordinates are broken up as 2 hex pairs.  The first is a 100 multiplier, the second is a value 0-99 added to it. ex 02 01 would be 201
+  pos_y1 = format(y1/100,"02x") + format(y1%100,"02x") # Coordinates are broken up as 2 hex pairs.  The first is a 100 multiplier, the second is a value 0-99 added to it. ex 02 01 would be 201
+  pos_x2 = format(x2/100,"02x") + format(x2%100,"02x") # Coordinates are broken up as 2 hex pairs.  The first is a 100 multiplier, the second is a value 0-99 added to it. ex 02 01 would be 201
+  pos_y2 = format(y2/100,"02x") + format(y2%100,"02x") # Coordinates are broken up as 2 hex pairs.  The first is a 100 multiplier, the second is a value 0-99 added to it. ex 02 01 would be 201
   # serial_send("ffffffff")
   serial_send(ser, "1B" + pos_x1 + pos_y1 + "00FF" )
   time.sleep(.2)
