@@ -241,6 +241,8 @@ def stop_laser_job_center(ser): # take box and find center, don't do write in fu
 
 
 def set_laser_power(ser, power): # range 0-10 (Don't use 10, it messes up movement)
+  if power > 254: power = 254
+  if power < 0: power = 0
   if debug: print "\tDBG: set_laser_power: " + str(power)
   serial_send(ser, ("33" + format(power,"02x") + "00000000ff"))
   time.sleep(.2)
@@ -1112,7 +1114,7 @@ Expected Syntax:
           B) Reboot Laser       S) Stop Laser Raster Mode
           C) Calibrate/Reboot Laser
           P) Laser Power 0
-            P#) Laser Power 0-10
+            P#) Laser Power 0-10 (can go higher as high as 254, but 10 is max software)
           L) Laser Location (256, 256)     L5) Laser Location (0, 256)    L10) Laser Location (128, 128)
             L1) Laser Location (0, 0)      L6) Laser Location (256, 256)  L11) Laser Location (128, 384)
             L2) Laser Location (0, 512)    L7) Laser Location (256, 512)  L12) Laser Location (384, 384)
@@ -1191,28 +1193,13 @@ Expected Syntax:
         parse_init_resp( laser_reboot(ser) )
       elif user_input=='P':
         set_laser_power(ser, 1)
-      elif user_input=='P0':
-        set_laser_power(ser, 0)
-      elif user_input=='P1':
-        set_laser_power(ser, 1)
-      elif user_input=='P2':
-        set_laser_power(ser, 2)
-      elif user_input=='P3':
-        set_laser_power(ser, 3)
-      elif user_input=='P4':
-        set_laser_power(ser, 4)
-      elif user_input=='P5':
-        set_laser_power(ser, 5)
-      elif user_input=='P6':
-        set_laser_power(ser, 6)
-      elif user_input=='P7':
-        set_laser_power(ser, 7)
-      elif user_input=='P8':
-        set_laser_power(ser, 8)
-      elif user_input=='P9':
-        set_laser_power(ser, 9)
-      elif user_input=='P10':
-        set_laser_power(ser, 10)
+      elif user_input.startswith("P") and len(user_input) > 1:
+        power = 0
+        try:
+          power = int(user_input[1:])
+        except:
+          ''
+        set_laser_power(ser, power)
       elif user_input=='L':
         set_laser_position(ser, 256, 256)
       elif user_input=='L1':
