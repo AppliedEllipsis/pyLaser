@@ -152,6 +152,18 @@ def stop_laser_raster_grey_mode(ser):
   # serial_send(ser, "15 00 00 00 00 00 FF")
   time.sleep(.2)
 
+def vector_draw_grey_pixel(ser, x, y, grey=0, delay=0.2, normalize=False):
+  if debug: print "\tDBG: vector_draw_grey_pixel: " + str(x) + "," + str(y) + " / " + str(grey) 
+  if normalize:
+    grey = int(math.floor(grey / 254.0 * 10))
+    if debug: print "\t\tDBG: normalized vector_draw_grey_pixel: " + str(x) + "," + str(y) + " / " + str(grey) 
+  set_laser_position(ser, x, y)
+  time.sleep(delay) # set to the same as the laser speed or longer for best results
+  set_laser_power(ser, grey)
+  time.sleep(delay) # set to the same as the laser speed or longer for best results
+  set_laser_power(ser, 0)
+
+
 def raster_draw_grey_pixel(ser,x,y,grey=0,delay=0.2): # X and Y range: 0-512, grey range 0-254 [0=lightest, 254=darkest besides not firing.] # 255 is actually valid
   # be sure to start and stop raster mode prior and post calling this
   # I find if using grey values, to skip 2 pixels horizontal or it won't show up
@@ -686,6 +698,83 @@ def example_raster_draw_grey_picture(ser, image_path, speed_ms=125):
           raster_draw_grey_pixel(ser, x, y+1, value, speed_s)
   stop_laser_raster_grey_mode(ser)
 
+def example_vector_draw_grey_picture(ser, image_path, speed_ms=125):
+  # image conversions from http://stackoverflow.com/questions/1109422/getting-list-of-pixel-values-from-pil
+  # and http://stackoverflow.com/questions/32361908/python-gray-scale-formula-with-pil
+  if image_path == '':
+    print "\n\tERROR: No image file provided"
+    return
+  if not os.path.isfile(image_path):
+      print "\n\tERROR: No image file exists"
+      return
+  i = Image.open(image_path)
+  width, height = i.size
+  # stop_laser_raster_mode(ser) # make sure not in raster mode
+  # stop_laser_raster_grey_mode(ser) # make sure not in raster mode
+  set_laser_power(ser, 1) # just a visible laser, nothing really will cut
+  set_fan_speed(ser, 10)
+  set_motor_speed(ser, 65)
+  # speed_ms = 125
+  speed_s = speed_ms/1000.0
+  set_laser_speed(ser, speed_ms)
+
+  # this seems to be needed for raster
+  set_laser_box(ser, 0, 0, 512, 512) # quick calibration
+  time.sleep(2)
+  set_laser_position(ser, 0,0)
+  time.sleep(3)
+
+  # set_laser_box(ser, 0, 0, 512, 512)  # quick calibration
+  # time.sleep(3)
+  # set_laser_box(ser, 0, 10, 350, 30) # outline the area we are going to draw
+  # time.sleep(3)
+  # lets draw the box
+  # set_laser_power(ser, 8)
+  # set_laser_box(ser, 0, 10, 350, 30) # outline the area we are going to draw
+  # time.sleep(3)
+  # set_laser_power(ser, 1)
+  # set_laser_position(ser, 10,0)
+  time.sleep(1)
+  # start_laser_raster_grey_mode(ser)
+  for y in range(0, height, 2):
+    for x in range(0, width, 1):
+      pixel = i.getpixel((x, y))
+      r = pixel[0]
+      g = pixel[1]
+      b = pixel[2]
+      # r, g, b = i.getpixel((x, y))
+      if (r, g, b) != (255,255,255):
+        # bw_value = int(round(sum(pixels[x, y]) / float(len(pixels[x, y]))))
+        # bw_value = 254 - bw_value
+        # if bw_value < 0: bw_value = 0
+        # luma = (0.3 * pixels[x, y][0]) + (0.59 * pixels[x, y][1]) + (0.11 * pixels[x, y][2])
+        # luma = int(math.ceil(luma))
+        value = r * 0.299 + g * 0.587 + b * 0.114
+        value = 255 - int(value)
+        # if luma > 254: luma = 254
+        # bw_value = 254 - luma
+        # if bw_value < 0: bw_value = 0
+        # if round(sum(cpixel)) / float(len(cpixel)) > 127: bw_127 = cpixel
+        # print "(%d, %d) - %s" % (x,y,pixels[x, y])
+        # print "(%d, %d) - %s" % (x,y,luma)
+        # print x, y, r, g, b, value
+        vector_draw_grey_pixel(ser, x, y, value, speed_s)
+        # print x, y, r, g, b, value
+    if y+1 < height:
+      if debug: print( "\t\tReversing Direction")
+      for x in range(width-1, -1, -3):
+        pixel = i.getpixel((x, y))
+        r = pixel[0]
+        g = pixel[1]
+        b = pixel[2]
+        # r, g, b = i.getpixel((x, y+1))
+        if (r, g, b) != (255,255,255):
+          value = r * 0.299 + g * 0.587 + b * 0.114
+          value = 255 - int(value)
+          # print x, y, r, g, b, value
+          vector_draw_grey_pixel(ser, x, y+1, value, speed_s)
+  # stop_laser_raster_grey_mode(ser)
+
 # example_raster_draw_grey_picture(None, "test.png")
 # print "\nDone\n"
 # sys.exit()
@@ -1107,7 +1196,7 @@ Expected Syntax:
           7) Raster Draw: Line with break         9) Raster Draw: Angle Line \       9B) Raster Draw: Vertical Line
           8) Raster Draw: Draw Shade Boxes        9A) Raster Draw: Horizontal Line   9C) Raster Draw: Vector Hi (skip 2)
           8B) Raster Draw: Grey Image #1 (hi)     8C) Raster Draw: Grey Image #2 (gradients) 8D) Raster Draw: test-nukecola3.png
-          8E) Raster Draw: Grey gradient_2px_256.png       8F) test-nukecola.png
+          8E) Raster Draw: Grey gradient_2px_256.png  8E2) Vector Grey 2px 256      8F) test-nukecola.png 8F2) vector test-nukecola.png
           * reset seems to be needed after some vector actions
         Lower Level Functions:
           I) Init Laser
@@ -1172,8 +1261,12 @@ Expected Syntax:
         example_raster_draw_grey_picture(ser, "images/test-nukecola3.png")
       elif user_input=='8E':
         example_raster_draw_grey_picture(ser, "images/gradient_2px_256.png", 60)
+      elif user_input=='8E2':
+        example_vector_draw_grey_picture(ser, "images/gradient_2px_256.png", 10)
       elif user_input=='8F':
         example_raster_draw_grey_picture(ser, "images/test-nukecola.png", 20)
+      elif user_input=='8F2':
+        example_vector_draw_grey_picture(ser, "images/test-nukecola.png", 5)
       elif user_input=='9':
         example_raster_draw_angle(ser, 2)
       elif user_input=='9A':
@@ -1192,7 +1285,7 @@ Expected Syntax:
       elif user_input=='B':
         parse_init_resp( laser_reboot(ser) )
       elif user_input=='P':
-        set_laser_power(ser, 1)
+        set_laser_power(ser, 0)
       elif user_input.startswith("P") and len(user_input) > 1:
         power = 0
         try:
