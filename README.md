@@ -14,7 +14,7 @@ Right now, I'm still prototyping and writing this, the code will be cleaner in t
 * The laser this is developed against is a [cheap sub-$100, shipped, cnc 1000mw laser from China](https://www.wish.com/c/5852c8be0124c76a0a276aec).
 * The laser enclosure is unbranded
 * It is listed as HW V2, Firmware V2.4
-* The software it uses is HTOPW.
+* The software it uses is HTPOW.
   * I am not a big fan of this software as it seems to only do raster stuff, and isn't the most user friendly, but it is functional.
   * It also goes by the name of SuperCarver (software and laser engraver)
 * It looks identical to some cheap chinese NEJE Lasers, but the protocol seems to be different
