@@ -23,7 +23,10 @@ Right now, I'm still prototyping and writing this, the code will be cleaner in t
 ![Image of Cheap Chinese Laser](images/laser_cutter.jpg)
 
 **How to Sniff traffic**
-I used a freeware Serial Port Debugger called [SUDT AccessPort](http://www.sudt.com/en/ap/index.html), and would set it to listen to traffic on the com port of the laser, run a task, and save the output.  I would then sanitize the output using some regular expression replaces and look for patterns and trends in the data. A [parser](https://github.com/AppliedEllipsis/pyLaser/blob/master/parseAccessPort.py) was written to process and analyze the dumps easier.  Another [tool](https://github.com/AppliedEllipsis/pyLaser/blob/master/parseGrey2.py) was created to further process the grey data from samples. Run it against the output of the previous script and it will show coords and grey levels in int values.
+* I used a freeware Serial Port Debugger called [SUDT AccessPort](http://www.sudt.com/en/ap/index.html), and would set it to listen to traffic on the com port of the laser, run a task, and save the output.  I would then sanitize the output using some regular expression replaces and look for patterns and trends in the data. A [parser](https://github.com/AppliedEllipsis/pyLaser/blob/master/parseAccessPort.py) was written to process and analyze the dumps easier.  Another [tool](https://github.com/AppliedEllipsis/pyLaser/blob/master/parseGrey2.py) was created to further process the grey data from samples. Run it against the output of the previous script and it will show coords and grey levels in int values. Warning it bsod crashes if disconnecting usb before unbinding.
+
+* In order to read the entire payload and for future monitoring, I have moved to BusDog as my serial monitor.
+ * You can get it by donating to Realterm
 
 ######Greyscale
 * I finally got greyscale to work
@@ -63,3 +66,17 @@ Leather shows some good contrast at darker levels.  This was done with 60ms spee
 The leather greyscale looks better from a distance.  Ignore all the other sample etchings, I was using this material to find an optimial cutting speed or contrast of the source image.
 Actually don't ignore the sample etchings... look at them to see test results, even though you don't know the timing.
 ![Image of greyscale result on Leater at 20ms... Nuke Cola and Fallout Boy from Fallout from a distance](images/output_fallout_distance.jpg)
+
+
+#####Note about offline
+* To write offline
+* It appears to send fd 00 00 00 00 00 ff to wipe the previous image
+* Then reads in 4 null bytes
+* then transmit in a single push an entire 512x512, 1 bit, 1 layer, upside down bitmap.
+* To preview the box offline, it sends 1d 02 02 00 00 00 ff
+* To center offline, it sends 1d 03 02 00 00 00 ff
+* To start offline, send 15 01 02 00 00 00 ff
+ * It will respond with a 00 for every pixel processed
+* To pause offline, send 15 00 02 00 00 00 ff
+* To start at beginning offline, send 35 00 00 00 00 00 ff
+
