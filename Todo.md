@@ -17,7 +17,7 @@
 * GUI, probably web front-end
  * Mobile Support
 * Duplicate Protocol on ESP8266 to make it Wifi, maybe
-* Dither Patterns - Since Grey Does not appear to function, using laser strength and average area, set patterns to emulate greyscale
+* Dither Patterns - Since Grey Does not appear to function ideally, using laser strength and average area, set patterns to emulate greyscale in vector mode or raster
 * Make the motors sing (high pitches, maybe play a song)
 * Optimal default settings for different materials
 * Smart Fan Control
