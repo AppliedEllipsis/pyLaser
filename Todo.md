@@ -8,7 +8,7 @@
  * BW Carving - Added
  * Greyscale Carving - Added
  * Offline Carving
-* Vector/G-Code Pathing - Basic Vector Hi test added
+* Vector/SVG/G-Code Pathing - Basic Vector Hi test added
  * Optimized Pathing
 * Add percentage done, time run, and expected time remaining
 * Input sanatization
