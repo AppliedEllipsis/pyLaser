@@ -82,3 +82,12 @@ Actually don't ignore the sample etchings... look at them to see test results, e
 * To pause offline, send 15 00 02 00 00 00 ff
 * To start at beginning offline, send 35 00 00 00 00 00 ff
 
+
+#####Note about Linux support
+* I tested a VM of Debian 8
+* It mounted as /dev/ttyUSB0 (detected as ch341-uart)
+* I had to install python-serial <apt-get install python-serial>
+* pyLaser.py ran without any modification under root.
+ * /dev/ttyUSB0 is not accessable as a normal user by default.
+ * Adding the user to the dialout group <usermod -aG dialout user> allowed a standard user to access the usb serial port after logging back in.
+ * As suspected, the code is OS agnostic provided that Python2 is on it. Likely Python3 is supported as is, since I modified all the print cmds and similar language differences.
