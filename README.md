@@ -19,6 +19,8 @@ Right now, I'm still prototyping and writing this, the code will be cleaner in t
   * It also goes by the name of SuperCarver (software and laser engraver)
 * It looks identical to some cheap chinese NEJE Lasers, but the protocol seems to be different
 * Mine came with a bad power supply and EU converter, so I just use a USB power cable and connect it to a 2.4amp power source or powerbank (not very stable, as it seems to go into standby mode with the power bank)
+* It uses a CH340 USB to Serial adapter which has drivers for Win, Mac, and Linux (built-in on modern distros)
+ * The Win driver is buggy with reconnecting to a port if it was opened. If this happens, either reboot or plug it into another USB port.
 
 ![Image of Cheap Chinese Laser](images/laser_cutter.jpg)
 
