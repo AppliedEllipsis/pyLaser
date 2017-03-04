@@ -92,4 +92,4 @@ Actually don't ignore the sample etchings... look at them to see test results, e
  * Adding the user to the dialout group <usermod -aG dialout user> allowed a standard user to access the usb serial port after logging back in.
  * As suspected, the code is OS agnostic provided that Python2 is on it. Likely Python3 is supported as is, since I modified all the print cmds and similar language differences.
 
- ![Linux Screenshot of CLI](images/linux_screenshot.jpg)
+ ![Linux Screenshot of CLI](images/linux_screenshot.png)
