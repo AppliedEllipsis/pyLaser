@@ -10,8 +10,8 @@ import time, glob, math
 
 module_info = {
 'NAME': "pyLaser",
-'ORIGINAL_ARTHOR': "Applied Ellippsis", # leave this
-'ARTHOR': "Applied Ellipsis", # change this to you
+'ORIGINAL_AUTHOR': "Applied Ellippsis", # leave this
+'AUTHOR': "Applied Ellipsis", # change this to you
 'DESCRIPTION': '''
 Python Interface for HTPOW (Cheap Chinese CNC Laser Engravers)
 ''',
